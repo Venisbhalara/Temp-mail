@@ -6,13 +6,32 @@ import { SkeletonEmailViewer } from './SkeletonLoader';
 import EmptyState from './EmptyState';
 import { useClipboard } from '../hooks/useClipboard';
 
+// SVG icons
+const DownloadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+);
+const TrashIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </svg>
+);
+
 // Download email as a file
-const downloadEmail = (email, format) => {
-  const content = format === 'html'
+const downloadEmail = (email, fmt) => {
+  const content = fmt === 'html'
     ? email.bodyHtml || email.bodyText
     : email.bodyText || '';
-  const mime = format === 'html' ? 'text/html' : 'text/plain';
-  const ext  = format === 'html' ? 'html' : 'txt';
+  const mime = fmt === 'html' ? 'text/html' : 'text/plain';
+  const ext  = fmt === 'html' ? 'html' : 'txt';
   const blob = new Blob([content], { type: mime });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -32,6 +51,7 @@ export default function EmailViewer() {
         className="email-viewer"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
+        style={{ minHeight: 300 }}
       >
         <EmptyState
           icon="✉️"
@@ -94,25 +114,28 @@ export default function EmailViewer() {
           {email.bodyHtml && (
             <button
               className="btn btn--ghost"
-              style={{ fontSize: 13 }}
+              style={{ fontSize: 13, gap: 6 }}
               onClick={() => downloadEmail(email, 'html')}
+              id="viewer-download-html"
             >
-              ↓ HTML
+              <DownloadIcon /> HTML
             </button>
           )}
           <button
             className="btn btn--ghost"
-            style={{ fontSize: 13 }}
+            style={{ fontSize: 13, gap: 6 }}
             onClick={() => downloadEmail(email, 'txt')}
+            id="viewer-download-txt"
           >
-            ↓ Text
+            <DownloadIcon /> Text
           </button>
           <button
             className="btn btn--danger-ghost"
-            style={{ fontSize: 13 }}
+            style={{ fontSize: 13, gap: 6 }}
             onClick={() => deleteEmail(email.id)}
+            id="viewer-delete-btn"
           >
-            🗑 Delete
+            <TrashIcon /> Delete
           </button>
         </div>
 

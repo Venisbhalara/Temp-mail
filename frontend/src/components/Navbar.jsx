@@ -5,28 +5,29 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="container">
+      <div className="container" style={{ maxWidth: 960 }}>
         <div className="navbar__inner">
+
           {/* Logo */}
           <a href="/" className="navbar__logo">
-            <div className="navbar__logo-icon">⚡</div>
-            <span className="navbar__logo-text">
-              Temp<span>Vault</span>
-            </span>
+            <div className="navbar__logo-icon" aria-hidden="true">
+              {/* Mail icon SVG matching the reference */}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke={theme === 'dark' ? '#93C5FD' : '#FFFFFF'}
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <polyline points="2,4 12,13 22,4"/>
+              </svg>
+            </div>
+            <div className="navbar__logo-text">
+              <span className="navbar__logo-name">Temp<span style={{ fontWeight: 400 }}>Mail</span></span>
+              <span className="navbar__logo-sub">Disposable Email Address</span>
+            </div>
           </a>
 
           {/* Right actions */}
           <div className="navbar__actions">
-            {/* <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn--ghost"
-              style={{ fontSize: '13px', padding: '6px 14px' }}
-            >
-              GitHub ↗
-            </a> */}
-
+            {/* Theme toggle */}
             <button
               className="theme-toggle"
               onClick={toggle}
@@ -36,6 +37,7 @@ export default function Navbar() {
               {theme === "dark" ? "☀️" : "🌙"}
             </button>
           </div>
+
         </div>
       </div>
     </nav>

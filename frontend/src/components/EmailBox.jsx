@@ -4,11 +4,36 @@ import { useApp } from '../context/AppContext';
 import { useClipboard } from '../hooks/useClipboard';
 import { formatDistanceToNow } from 'date-fns';
 
+// SVG icons
+const CopyIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2"/>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+  </svg>
+);
+const RefreshIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 4 23 10 17 10"/>
+    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+  </svg>
+);
+const TrashIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </svg>
+);
+
 export default function EmailBox() {
   const { inbox, loading, generateInbox, deleteInbox, domains, minutesLeft } = useApp();
   const { copied, copy } = useClipboard();
-  const [showCustom, setShowCustom]   = useState(false);
-  const [customName, setCustomName]   = useState('');
+  const [showCustom, setShowCustom]         = useState(false);
+  const [customName, setCustomName]         = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
 
   const handleCopy = () => inbox && copy(inbox.address);
@@ -39,56 +64,74 @@ export default function EmailBox() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
     >
-      {/* Label */}
-      <p className="email-box__label">Your disposable address</p>
-
-      {/* Address Field */}
+      {/* ── Dark pill email field ── */}
       <div className="email-box__field">
         {loading ? (
-          <div className="skeleton skeleton-line" style={{ flex: 1, height: 22 }} />
+          <div className="skeleton skeleton-line" style={{ flex: 1, height: 20 }} />
         ) : (
           <span className="email-box__address" id="email-address">
             {inbox?.address || '—'}
           </span>
         )}
 
-        <motion.button
-          className="btn btn--ghost btn--icon"
+        {/* Blue Copy button inside pill */}
+        <button
+          className="email-box__copy-btn"
           onClick={handleCopy}
           disabled={!inbox || loading}
           title="Copy email address"
-          whileTap={{ scale: 0.88 }}
+          id="copy-email-btn"
         >
-          {copied ? '✓' : '⎘'}
-        </motion.button>
+          <span className="email-box__copy-btn-icon">
+            <CopyIcon />
+          </span>
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
       </div>
 
-      {/* Action Row */}
+      {/* ── Action buttons row ── */}
       <div className="email-box__actions">
-        <motion.button
-          className="btn btn--primary"
-          onClick={handleRegenerate}
-          disabled={loading}
-          whileTap={{ scale: 0.96 }}
-        >
-          {loading ? 'Generating…' : '↺ New Address'}
-        </motion.button>
-
+        {/* Copy */}
         <button
-          className="btn btn--ghost"
-          onClick={() => setShowCustom(v => !v)}
-          disabled={loading}
+          className="action-btn"
+          onClick={handleCopy}
+          disabled={!inbox || loading}
+          id="action-copy-btn"
         >
-          ✎ Custom
+          <span className="action-btn__icon"><CopyIcon /></span>
+          Copy
         </button>
 
+        {/* Refresh / New Address */}
         <button
-          className="btn btn--danger-ghost btn--icon"
+          className="action-btn action-btn--refresh"
+          onClick={handleRegenerate}
+          disabled={loading}
+          id="action-refresh-btn"
+        >
+          <span className="action-btn__icon"><RefreshIcon /></span>
+          {loading ? 'Generating…' : 'Refresh'}
+        </button>
+
+        {/* Delete */}
+        <button
+          className="action-btn action-btn--delete"
           onClick={deleteInbox}
           disabled={!inbox || loading}
-          title="Delete inbox"
+          id="action-delete-btn"
         >
-          🗑
+          <span className="action-btn__icon"><TrashIcon /></span>
+          Delete
+        </button>
+
+        {/* Custom username toggle */}
+        <button
+          className="action-btn"
+          onClick={() => setShowCustom(v => !v)}
+          disabled={loading}
+          id="action-custom-btn"
+        >
+          ✎ Custom
         </button>
 
         {/* Expiry timer */}
@@ -99,7 +142,7 @@ export default function EmailBox() {
         )}
       </div>
 
-      {/* Custom Username Panel */}
+      {/* ── Custom Username Panel ── */}
       <AnimatePresence>
         {showCustom && (
           <motion.form
@@ -140,7 +183,7 @@ export default function EmailBox() {
         )}
       </AnimatePresence>
 
-      {/* Copied feedback */}
+      {/* ── Copied feedback toast ── */}
       <AnimatePresence>
         {copied && (
           <motion.div
@@ -148,8 +191,9 @@ export default function EmailBox() {
               position: 'absolute', top: 12, right: 16,
               background: 'var(--success-surface)', color: 'var(--success)',
               border: '1px solid rgba(16,185,129,.3)',
-              padding: '4px 12px', borderRadius: 'var(--r-full)',
+              padding: '4px 14px', borderRadius: 'var(--r-full)',
               fontSize: 13, fontWeight: 600,
+              pointerEvents: 'none',
             }}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}

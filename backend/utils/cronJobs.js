@@ -1,12 +1,12 @@
-const cron = require('node-cron');
-const { inboxStore } = require('../controllers/inboxController');
-const { deleteAccount } = require('../services/mailTmService');
+const cron = require("node-cron");
+const { inboxStore } = require("../controllers/inboxController");
+const { deleteAccount } = require("../services/mailTmService");
 
 const setupCronJobs = (io) => {
   // ── Clean expired inboxes every 10 minutes ───────────────────────────────
-  cron.schedule('*/10 * * * *', async () => {
+  cron.schedule("*/10 * * * *", async () => {
     try {
-      console.log('🧹 Running expired inbox cleanup...');
+      console.log("🧹 Running expired inbox cleanup...");
       const now = new Date();
       let deleted = 0;
 
@@ -23,14 +23,14 @@ const setupCronJobs = (io) => {
 
       if (deleted > 0) console.log(`   ✅ Removed ${deleted} expired inboxes`);
     } catch (err) {
-      console.error('❌ Cleanup job failed:', err.message);
+      console.error("❌ Cleanup job failed:", err.message);
     }
   });
 
   // ── Warn clients 5 min before expiry (every minute) ──────────────────────
-  cron.schedule('* * * * *', () => {
+  cron.schedule("* * * * *", () => {
     try {
-      const now  = new Date();
+      const now = new Date();
       const soon = new Date(now.getTime() + 5 * 60 * 1000);
       const min1 = new Date(now.getTime() + 60 * 1000);
 
@@ -38,7 +38,7 @@ const setupCronJobs = (io) => {
         const exp = new Date(inbox.expiresAt);
         if (exp > min1 && exp <= soon) {
           const minutesLeft = Math.ceil((exp - now) / 60000);
-          io.to(inbox.inboxId).emit('inbox_expiring', {
+          io.to(inbox.inboxId).emit("inbox_expiring", {
             inboxId: inbox.inboxId,
             minutesLeft,
             expiresAt: inbox.expiresAt,
@@ -46,11 +46,11 @@ const setupCronJobs = (io) => {
         }
       }
     } catch (err) {
-      console.error('❌ Expiry-notification job failed:', err.message);
+      console.error("❌ Expiry-notification job failed:", err.message);
     }
   });
 
-  console.log('⏰ Cron jobs initialized');
+  console.log("⏰ Cron jobs initialized");
 };
 
 module.exports = { setupCronJobs };
