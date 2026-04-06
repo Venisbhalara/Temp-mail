@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useClipboard } from '../hooks/useClipboard';
@@ -30,25 +29,13 @@ const TrashIcon = () => (
 );
 
 export default function EmailBox() {
-  const { inbox, loading, generateInbox, deleteInbox, domains, minutesLeft } = useApp();
+  const { inbox, loading, generateInbox, deleteInbox, minutesLeft } = useApp();
   const { copied, copy } = useClipboard();
-  const [showCustom, setShowCustom]         = useState(false);
-  const [customName, setCustomName]         = useState('');
-  const [selectedDomain, setSelectedDomain] = useState('');
 
   const handleCopy = () => inbox && copy(inbox.address);
 
   const handleRegenerate = () => {
-    setCustomName('');
-    setShowCustom(false);
     generateInbox();
-  };
-
-  const handleCustomSubmit = (e) => {
-    e.preventDefault();
-    if (!customName.trim()) return;
-    generateInbox(customName + (selectedDomain ? `@${selectedDomain}` : ''));
-    setShowCustom(false);
   };
 
   const expiresIn = inbox
@@ -124,16 +111,6 @@ export default function EmailBox() {
           Delete
         </button>
 
-        {/* Custom username toggle */}
-        <button
-          className="action-btn"
-          onClick={() => setShowCustom(v => !v)}
-          disabled={loading}
-          id="action-custom-btn"
-        >
-          ✎ Custom
-        </button>
-
         {/* Expiry timer */}
         {expiresIn && (
           <span className={`email-box__timer ${isExpiringSoon ? 'email-box__timer--warn' : ''}`}>
@@ -141,48 +118,6 @@ export default function EmailBox() {
           </span>
         )}
       </div>
-
-      {/* ── Custom Username Panel ── */}
-      <AnimatePresence>
-        {showCustom && (
-          <motion.form
-            className="custom-username"
-            onSubmit={handleCustomSubmit}
-            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <input
-              className="custom-username__input"
-              placeholder="yourname"
-              value={customName}
-              onChange={e => setCustomName(e.target.value)}
-              maxLength={30}
-              autoFocus
-            />
-            {domains.length > 0 && (
-              <select
-                className="custom-username__select"
-                value={selectedDomain}
-                onChange={e => setSelectedDomain(e.target.value)}
-              >
-                <option value="">Random domain</option>
-                {domains.map(d => (
-                  <option key={d} value={d}>@{d}</option>
-                ))}
-              </select>
-            )}
-            <button type="submit" className="btn btn--primary" disabled={!customName.trim()}>
-              Create
-            </button>
-            <button type="button" className="btn btn--ghost" onClick={() => setShowCustom(false)}>
-              Cancel
-            </button>
-          </motion.form>
-        )}
-      </AnimatePresence>
-
       {/* ── Copied feedback toast ── */}
       <AnimatePresence>
         {copied && (
