@@ -1,61 +1,56 @@
 const cron = require('node-cron');
-const memoryStore = require('./memoryStore');
+const { inboxStore } = require('../controllers/inboxController');
+const { deleteAccount } = require('../services/mailTmService');
 
-/**
- * Initialize all scheduled background jobs.
- * 
- * @param {import('socket.io').Server} io
- */
 const setupCronJobs = (io) => {
-  // ── Job 1: Clean expired inboxes and orphaned emails every 10 minutes ──────
+  // ── Clean expired inboxes every 10 minutes ───────────────────────────────
   cron.schedule('*/10 * * * *', async () => {
     try {
       console.log('🧹 Running expired inbox cleanup...');
-      
-      const expiredInboxes = memoryStore.getExpiredInboxes();
+      const now = new Date();
+      let deleted = 0;
 
-      if (expiredInboxes.length > 0) {
-        let deletedInboxes = 0;
-        let deletedEmails = 0;
-
-        for (const inbox of expiredInboxes) {
-          const emailCount = memoryStore.countEmailsByInboxId(inbox.inboxId);
-          if (memoryStore.deleteInbox(inbox.inboxId)) {
-            deletedInboxes++;
-            deletedEmails += emailCount;
-          }
+      for (const [inboxId, inbox] of inboxStore.entries()) {
+        if (new Date(inbox.expiresAt) < now) {
+          // Delete from Mail.tm too
+          try {
+            await deleteAccount(inbox.token, inbox.accountId);
+          } catch (_) {}
+          inboxStore.delete(inboxId);
+          deleted++;
         }
-
-        console.log(`   ✅ Removed ${deletedInboxes} expired inboxes and ${deletedEmails} emails`);
       }
+
+      if (deleted > 0) console.log(`   ✅ Removed ${deleted} expired inboxes`);
     } catch (err) {
       console.error('❌ Cleanup job failed:', err.message);
     }
   });
 
-  // ── Job 2: Warn clients 5 min before their inbox expires ───────────────────
-  cron.schedule('* * * * *', async () => {
+  // ── Warn clients 5 min before expiry (every minute) ──────────────────────
+  cron.schedule('* * * * *', () => {
     try {
-      const now = new Date();
+      const now  = new Date();
       const soon = new Date(now.getTime() + 5 * 60 * 1000);
       const min1 = new Date(now.getTime() + 60 * 1000);
 
-      const expiring = memoryStore.getExpiringInboxes(min1, soon);
-      
-      expiring.forEach((inbox) => {
-        const minutesLeft = Math.ceil((new Date(inbox.expiresAt) - now) / 60000);
-        io.to(inbox.inboxId).emit('inbox_expiring', {
-          inboxId: inbox.inboxId,
-          minutesLeft,
-          expiresAt: inbox.expiresAt,
-        });
-      });
+      for (const inbox of inboxStore.values()) {
+        const exp = new Date(inbox.expiresAt);
+        if (exp > min1 && exp <= soon) {
+          const minutesLeft = Math.ceil((exp - now) / 60000);
+          io.to(inbox.inboxId).emit('inbox_expiring', {
+            inboxId: inbox.inboxId,
+            minutesLeft,
+            expiresAt: inbox.expiresAt,
+          });
+        }
+      }
     } catch (err) {
       console.error('❌ Expiry-notification job failed:', err.message);
     }
   });
 
-  console.log('⏰ Cron jobs initialized (In-Memory version)');
+  console.log('⏰ Cron jobs initialized');
 };
 
 module.exports = { setupCronJobs };

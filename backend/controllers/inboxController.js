@@ -1,62 +1,88 @@
-const memoryStore = require('../utils/memoryStore');
-const mailService = require('../utils/mailService');
-const { v4: uuidv4 } = require('uuid');
+const {
+  getDomains,
+  generatePassword,
+  generateUsername,
+  createAccount,
+  getToken,
+  deleteAccount,
+} = require('../services/mailTmService');
+
+// In-memory store: inboxId → { inboxId, address, accountId, token, password, expiresAt, createdAt }
+// We still keep a lightweight map so your Socket.io rooms & expiry logic keep working
+const inboxStore = new Map();
 
 const EXPIRY_MINUTES = parseInt(process.env.INBOX_EXPIRY_MINUTES || '60', 10);
 
-// Helper to generate random string for password
-const generateRandomPassword = () => Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
-
-// --- POST /api/generate-email ---
+// ── POST /api/generate-email ─────────────────────────────────────────────────
 const generateInbox = async (req, res) => {
   try {
     const { customUsername } = req.body;
-    
-    // 1. Get available domains from Mail.tm
-    const domains = await mailService.getDomains();
-    if (!domains.length) {
-      return res.status(503).json({ error: 'No email domains available at the moment' });
+
+    // 1. Fetch available domains from Mail.tm
+    const domains = await getDomains();
+    if (!domains || domains.length === 0) {
+      return res.status(503).json({ error: 'No domains available from Mail.tm. Try again.' });
     }
 
-    const domain = domains[0].domain; // Use the first available domain
-    
-    // 2. Generate username and password
-    let username = customUsername;
-    if (!username) {
-      username = Math.random().toString(36).substring(2, 10);
-    }
-    
-    const address = `${username}@${domain}`;
-    const password = generateRandomPassword();
+    const domain   = domains[0].domain;
+    const username = customUsername
+      ? customUsername.toLowerCase().replace(/[^a-z0-9._-]/g, '')
+      : generateUsername();
+    const address  = `${username}@${domain}`;
+    const password = generatePassword();
 
-    // 3. Create account on Mail.tm
-    try {
-      await mailService.createAccount(address, password);
-    } catch (err) {
-      if (err.response?.status === 422) {
-        return res.status(409).json({ error: 'Email address already taken. Try another username.' });
-      }
-      throw err;
-    }
+    // 2. Create account on Mail.tm
+    const account = await createAccount(address, password);
 
-    // 4. Get authentication token
-    const token = await mailService.getToken(address, password);
+    // 3. Get JWT token
+    const token = await getToken(address, password);
 
-    // 5. Store in local memory store
-    const inboxId = uuidv4();
-    const inbox = memoryStore.createInbox({
+    // 4. Store in memory (for socket rooms & expiry)
+    const inboxId   = account.id;
+    const expiresAt = new Date(Date.now() + EXPIRY_MINUTES * 60 * 1000);
+
+    inboxStore.set(inboxId, {
       inboxId,
-      address,
-      username,
-      domain,
-      password,
+      accountId: account.id,
+      address:   account.address,
+      username:  username,
+      domain:    domain,
       token,
-      emailCount: 0,
-      expiresAt: new Date(Date.now() + EXPIRY_MINUTES * 60 * 1000),
-      createdAt: new Date()
+      password,
+      expiresAt,
+      createdAt: new Date(),
     });
 
     res.status(201).json({
+      inboxId,
+      address:   account.address,
+      username,
+      domain,
+      expiresAt,
+      createdAt: new Date(),
+    });
+  } catch (err) {
+    console.error('generateInbox error:', err?.response?.data || err.message);
+    // Mail.tm returns 422 if address already taken
+    if (err?.response?.status === 422) {
+      return res.status(409).json({ error: 'Username already taken. Try another.' });
+    }
+    res.status(500).json({ error: 'Failed to generate email address' });
+  }
+};
+
+// ── GET /api/inbox/:inboxId ──────────────────────────────────────────────────
+const getInbox = async (req, res) => {
+  try {
+    const inbox = inboxStore.get(req.params.inboxId);
+    if (!inbox) return res.status(404).json({ error: 'Inbox not found or expired' });
+
+    if (new Date(inbox.expiresAt) < new Date()) {
+      inboxStore.delete(inbox.inboxId);
+      return res.status(404).json({ error: 'Inbox has expired' });
+    }
+
+    res.json({
       inboxId:   inbox.inboxId,
       address:   inbox.address,
       username:  inbox.username,
@@ -65,58 +91,41 @@ const generateInbox = async (req, res) => {
       createdAt: inbox.createdAt,
     });
   } catch (err) {
-    console.error('generateInbox Error:', err.message);
-    res.status(500).json({ error: 'Failed to generate real email address via Mail.tm' });
-  }
-};
-
-// --- GET /api/inbox/:inboxId ---
-const getInbox = async (req, res) => {
-  try {
-    const inbox = memoryStore.getInbox(req.params.inboxId);
-    if (!inbox) return res.status(404).json({ error: 'Inbox not found or expired' });
-
-    if (new Date(inbox.expiresAt) < new Date()) {
-      memoryStore.deleteInbox(inbox.inboxId);
-      return res.status(404).json({ error: 'Inbox has expired' });
-    }
-
-    res.json({
-      inboxId:    inbox.inboxId,
-      address:    inbox.address,
-      username:   inbox.username,
-      domain:     inbox.domain,
-      expiresAt:  inbox.expiresAt,
-      emailCount: inbox.emailCount,
-      createdAt:  inbox.createdAt,
-    });
-  } catch (err) {
     res.status(500).json({ error: 'Failed to get inbox' });
   }
 };
 
-// --- GET /api/domains ---
+// ── GET /api/domains ─────────────────────────────────────────────────────────
 const getDomainList = async (_req, res) => {
   try {
-    const domains = await mailService.getDomains();
+    const domains = await getDomains();
     res.json({ domains: domains.map(d => d.domain) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch domains' });
   }
 };
 
-// --- DELETE /api/inbox/:inboxId ---
+// ── DELETE /api/inbox/:inboxId ───────────────────────────────────────────────
 const deleteInbox = async (req, res) => {
   try {
-    const { inboxId } = req.params;
-    const deleted = memoryStore.deleteInbox(inboxId);
-    if (!deleted) return res.status(404).json({ error: 'Inbox not found' });
+    const inbox = inboxStore.get(req.params.inboxId);
+    if (!inbox) return res.status(404).json({ error: 'Inbox not found' });
 
-    req.app.get('io').to(inboxId).emit('inbox_deleted', { inboxId });
+    // Delete account on Mail.tm (also deletes all messages)
+    try {
+      await deleteAccount(inbox.token, inbox.accountId);
+    } catch (e) {
+      console.warn('Mail.tm deleteAccount failed (may already be gone):', e.message);
+    }
+
+    inboxStore.delete(inbox.inboxId);
+    req.app.get('io').to(inbox.inboxId).emit('inbox_deleted', { inboxId: inbox.inboxId });
+
     res.json({ message: 'Inbox deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete inbox' });
   }
 };
 
-module.exports = { generateInbox, getInbox, getDomainList, deleteInbox };
+// Export the store so emailController can access tokens
+module.exports = { generateInbox, getInbox, getDomainList, deleteInbox, inboxStore };
