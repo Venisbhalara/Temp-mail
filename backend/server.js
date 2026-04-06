@@ -84,18 +84,27 @@ const startMailPoller = (io) => {
         try {
           const messages = await mailService.getMessages(inbox.token);
           
-          // Check for new messages
-          const prevCount = inbox.emailCount || 0;
-          if (messages.length > prevCount) {
-            // Found new messages!
-            const newMessages = messages.slice(0, messages.length - prevCount);
-            newMessages.forEach(msg => {
+          // Initialize seenIds if missing (to avoid old messages re-triggering as new)
+          if (!inbox.seenIds) {
+            inbox.seenIds = new Set(messages.map(m => m.id));
+            // Just updated seen logic, we don't need to emit the initial fetch
+          } else {
+            // Find messages that haven't been seen yet
+            const newMessages = [];
+            messages.forEach(msg => {
+              if (!inbox.seenIds.has(msg.id)) {
+                inbox.seenIds.add(msg.id);
+                newMessages.push(msg);
+              }
+            });
+
+            // Emit safely (reverse to send oldest-new first if multiple arrived)
+            newMessages.reverse().forEach(msg => {
               io.to(inboxId).emit('new_email', {
                 ...toSummary(msg),
                 inboxId,
               });
             });
-            inbox.emailCount = messages.length;
           }
         } catch (err) {
           // Silent fail for background poller
