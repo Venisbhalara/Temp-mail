@@ -53,19 +53,20 @@ io.on('connection', (socket) => {
 });
 
 // --- Background Poller for Mail.tm ---
-const mailService = require('./utils/mailService');
+const mailService = require('./services/mailTmService');
 const { extractOTP } = require('./services/otpService');
+const { inboxStore } = require('./controllers/inboxController');
 
 /**
  * Format Mail.tm message to summary format
  */
 const toSummary = (msg) => ({
   id:         msg.id,
-  from:       msg.from.address,
-  fromName:   msg.from.name || 'Unknown',
+  from:       typeof msg.from === 'object' ? msg.from.address : msg.from,
+  fromName:   (typeof msg.from === 'object' ? msg.from.name : msg.from) || 'Unknown',
   subject:    msg.subject || '(No Subject)',
   preview:    msg.intro || 'No preview available',
-  otpCode:    extractOTP(msg.intro, '', msg.subject),
+  otpCode:    extractOTP(msg.intro || '', '', msg.subject || ''),
   isRead:     msg.seen,
   size:       msg.size,
   receivedAt: msg.createdAt,
@@ -78,7 +79,7 @@ const startMailPoller = (io) => {
     
     for (const [inboxId, room] of activeRooms.entries()) {
       // Sockets auto-join a room with their own ID, so we check if it's a valid uuid for an inbox
-      const inbox = require('./utils/memoryStore').getInbox(inboxId);
+      const inbox = inboxStore.get(inboxId);
       if (inbox && inbox.token && room.size > 0) {
         try {
           const messages = await mailService.getMessages(inbox.token);
