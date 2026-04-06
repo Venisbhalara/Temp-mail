@@ -52,10 +52,64 @@ io.on('connection', (socket) => {
   socket.on('disconnect',  () => console.log(`🔴 Disconnected: ${socket.id}`));
 });
 
-// ── Server Start ────────────────────────────────────────────
+// --- Background Poller for Mail.tm ---
+const mailService = require('./utils/mailService');
+const { extractOTP } = require('./services/otpService');
+
+/**
+ * Format Mail.tm message to summary format
+ */
+const toSummary = (msg) => ({
+  id:         msg.id,
+  from:       msg.from.address,
+  fromName:   msg.from.name || 'Unknown',
+  subject:    msg.subject || '(No Subject)',
+  preview:    msg.intro || 'No preview available',
+  otpCode:    extractOTP(msg.intro, '', msg.subject),
+  isRead:     msg.seen,
+  size:       msg.size,
+  receivedAt: msg.createdAt,
+});
+
+const startMailPoller = (io) => {
+  setInterval(async () => {
+    // Only poll for inboxes that have active socket connections
+    const activeRooms = io.sockets.adapter.rooms;
+    
+    for (const [inboxId, room] of activeRooms.entries()) {
+      // Sockets auto-join a room with their own ID, so we check if it's a valid uuid for an inbox
+      const inbox = require('./utils/memoryStore').getInbox(inboxId);
+      if (inbox && inbox.token && room.size > 0) {
+        try {
+          const messages = await mailService.getMessages(inbox.token);
+          
+          // Check for new messages
+          const prevCount = inbox.emailCount || 0;
+          if (messages.length > prevCount) {
+            // Found new messages!
+            const newMessages = messages.slice(0, messages.length - prevCount);
+            newMessages.forEach(msg => {
+              io.to(inboxId).emit('new_email', {
+                ...toSummary(msg),
+                inboxId,
+              });
+            });
+            inbox.emailCount = messages.length;
+          }
+        } catch (err) {
+          // Silent fail for background poller
+        }
+      }
+    }
+  }, 3000); // Poll every 3 seconds for fast response
+};
+
+// --- Server Start ---
 const PORT = process.env.PORT || 5000;
 
 setupCronJobs(io);
+startMailPoller(io); // Start the real-time mail listener
+
 server.listen(PORT, () =>
   console.log(`🚀 TempVault backend running on http://localhost:${PORT}`)
 );

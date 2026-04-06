@@ -1,63 +1,59 @@
 const memoryStore = require('../utils/memoryStore');
-const { generateEmail, getDomains, validateUsername } = require('../utils/emailGenerator');
+const mailService = require('../utils/mailService');
+const { v4: uuidv4 } = require('uuid');
 
 const EXPIRY_MINUTES = parseInt(process.env.INBOX_EXPIRY_MINUTES || '60', 10);
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-const getTakenDomains = (username) => {
-  const domains = [];
-  for (const inbox of memoryStore.inboxes.values()) {
-    if (inbox.username === username) domains.push(inbox.domain);
-  }
-  return domains;
-};
+// Helper to generate random string for password
+const generateRandomPassword = () => Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
 
-// ── POST /api/generate-email ─────────────────────────────────────────────────
+// --- POST /api/generate-email ---
 const generateInbox = async (req, res) => {
   try {
     const { customUsername } = req.body;
-    let emailData;
-
-    if (customUsername) {
-      const validation = validateUsername(customUsername);
-      if (!validation.valid) return res.status(400).json({ error: validation.message });
-
-      // Find domains where this username is free
-      const domains = getDomains();
-      const takenDomains = getTakenDomains(validation.username);
-      const free = domains.filter(d => !takenDomains.includes(d));
-      
-      if (!free.length) {
-        return res.status(409).json({ error: 'Username taken on all domains. Try another.' });
-      }
-
-      const { v4: uuidv4 } = require('uuid');
-      emailData = {
-        inboxId:  uuidv4(),
-        username: validation.username,
-        domain:   free[0],
-        address:  `${validation.username}@${free[0]}`,
-        isCustom: true,
-      };
-    } else {
-      // Random address — retry up to 5 times to avoid collision
-      let attempts = 0;
-      do {
-        emailData = generateEmail();
-        const exists = memoryStore.getInboxByAddress(emailData.address);
-        if (!exists) break;
-      } while (++attempts < 5);
+    
+    // 1. Get available domains from Mail.tm
+    const domains = await mailService.getDomains();
+    if (!domains.length) {
+      return res.status(503).json({ error: 'No email domains available at the moment' });
     }
 
+    const domain = domains[0].domain; // Use the first available domain
+    
+    // 2. Generate username and password
+    let username = customUsername;
+    if (!username) {
+      username = Math.random().toString(36).substring(2, 10);
+    }
+    
+    const address = `${username}@${domain}`;
+    const password = generateRandomPassword();
+
+    // 3. Create account on Mail.tm
+    try {
+      await mailService.createAccount(address, password);
+    } catch (err) {
+      if (err.response?.status === 422) {
+        return res.status(409).json({ error: 'Email address already taken. Try another username.' });
+      }
+      throw err;
+    }
+
+    // 4. Get authentication token
+    const token = await mailService.getToken(address, password);
+
+    // 5. Store in local memory store
+    const inboxId = uuidv4();
     const inbox = memoryStore.createInbox({
-      inboxId:    emailData.inboxId,
-      address:    emailData.address,
-      username:   emailData.username,
-      domain:     emailData.domain,
-      isCustom:   emailData.isCustom || false,
+      inboxId,
+      address,
+      username,
+      domain,
+      password,
+      token,
       emailCount: 0,
-      expiresAt:  new Date(Date.now() + EXPIRY_MINUTES * 60 * 1000),
-      createdAt:  new Date()
+      expiresAt: new Date(Date.now() + EXPIRY_MINUTES * 60 * 1000),
+      createdAt: new Date()
     });
 
     res.status(201).json({
@@ -69,18 +65,17 @@ const generateInbox = async (req, res) => {
       createdAt: inbox.createdAt,
     });
   } catch (err) {
-    console.error('generateInbox:', err.message);
-    res.status(500).json({ error: 'Failed to generate email address' });
+    console.error('generateInbox Error:', err.message);
+    res.status(500).json({ error: 'Failed to generate real email address via Mail.tm' });
   }
 };
 
-// ── GET /api/inbox/:inboxId ──────────────────────────────────────────────────
+// --- GET /api/inbox/:inboxId ---
 const getInbox = async (req, res) => {
   try {
     const inbox = memoryStore.getInbox(req.params.inboxId);
     if (!inbox) return res.status(404).json({ error: 'Inbox not found or expired' });
 
-    // Check if expired
     if (new Date(inbox.expiresAt) < new Date()) {
       memoryStore.deleteInbox(inbox.inboxId);
       return res.status(404).json({ error: 'Inbox has expired' });
@@ -100,10 +95,17 @@ const getInbox = async (req, res) => {
   }
 };
 
-// ── GET /api/domains ─────────────────────────────────────────────────────────
-const getDomainList = (_req, res) => res.json({ domains: getDomains() });
+// --- GET /api/domains ---
+const getDomainList = async (_req, res) => {
+  try {
+    const domains = await mailService.getDomains();
+    res.json({ domains: domains.map(d => d.domain) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch domains' });
+  }
+};
 
-// ── DELETE /api/inbox/:inboxId ───────────────────────────────────────────────
+// --- DELETE /api/inbox/:inboxId ---
 const deleteInbox = async (req, res) => {
   try {
     const { inboxId } = req.params;

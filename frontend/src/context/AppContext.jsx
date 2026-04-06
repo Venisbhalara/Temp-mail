@@ -179,10 +179,11 @@ export const AppProvider = ({ children }) => {
   };
 
   const selectEmail = async (email) => {
+    if (!state.inbox) return;
     dispatch({ type: "MARK_READ", payload: email.id });
     dispatch({ type: "SET_EMAIL_LOADING", payload: true });
     try {
-      const res = await fetch(`${API}/email/${email.id}`);
+      const res = await fetch(`${API}/email/${email.id}?inboxId=${state.inbox.inboxId}`);
       const full = await res.json();
       dispatch({ type: "SET_SELECTED", payload: full });
     } catch {
@@ -191,8 +192,9 @@ export const AppProvider = ({ children }) => {
   };
 
   const deleteEmail = async (id) => {
+    if (!state.inbox) return;
     try {
-      await fetch(`${API}/email/${id}`, { method: "DELETE" });
+      await fetch(`${API}/email/${id}?inboxId=${state.inbox.inboxId}`, { method: "DELETE" });
       dispatch({ type: "REMOVE_EMAIL", payload: id });
       toast("Email deleted");
     } catch {
@@ -200,18 +202,6 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const simulateEmail = async (type = "otp") => {
-    if (!state.inbox) return;
-    try {
-      await fetch(`${API}/simulate-email/${state.inbox.inboxId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type }),
-      });
-    } catch {
-      toast("Simulation failed", "error");
-    }
-  };
 
   const deleteInbox = async () => {
     if (!state.inbox) return;
@@ -251,7 +241,6 @@ export const AppProvider = ({ children }) => {
         fetchEmails,
         selectEmail,
         deleteEmail,
-        simulateEmail,
         deleteInbox,
         toast,
       }}
