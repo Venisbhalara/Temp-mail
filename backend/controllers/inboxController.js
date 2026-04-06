@@ -1,9 +1,16 @@
-const { Op } = require('sequelize');
-const Inbox = require('../models/Inbox');
-const Email = require('../models/Email');
+const memoryStore = require('../utils/memoryStore');
 const { generateEmail, getDomains, validateUsername } = require('../utils/emailGenerator');
 
 const EXPIRY_MINUTES = parseInt(process.env.INBOX_EXPIRY_MINUTES || '60', 10);
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const getTakenDomains = (username) => {
+  const domains = [];
+  for (const inbox of memoryStore.inboxes.values()) {
+    if (inbox.username === username) domains.push(inbox.domain);
+  }
+  return domains;
+};
 
 // ── POST /api/generate-email ─────────────────────────────────────────────────
 const generateInbox = async (req, res) => {
@@ -17,14 +24,12 @@ const generateInbox = async (req, res) => {
 
       // Find domains where this username is free
       const domains = getDomains();
-      const taken = await Inbox.findAll({
-        where: { username: validation.username },
-        attributes: ['domain'],
-      });
-      const takenDomains = taken.map(i => i.domain);
+      const takenDomains = getTakenDomains(validation.username);
       const free = domains.filter(d => !takenDomains.includes(d));
-      if (!free.length)
+      
+      if (!free.length) {
         return res.status(409).json({ error: 'Username taken on all domains. Try another.' });
+      }
 
       const { v4: uuidv4 } = require('uuid');
       emailData = {
@@ -39,12 +44,12 @@ const generateInbox = async (req, res) => {
       let attempts = 0;
       do {
         emailData = generateEmail();
-        const exists = await Inbox.findOne({ where: { address: emailData.address } });
+        const exists = memoryStore.getInboxByAddress(emailData.address);
         if (!exists) break;
       } while (++attempts < 5);
     }
 
-    const inbox = await Inbox.create({
+    const inbox = memoryStore.createInbox({
       inboxId:    emailData.inboxId,
       address:    emailData.address,
       username:   emailData.username,
@@ -52,6 +57,7 @@ const generateInbox = async (req, res) => {
       isCustom:   emailData.isCustom || false,
       emailCount: 0,
       expiresAt:  new Date(Date.now() + EXPIRY_MINUTES * 60 * 1000),
+      createdAt:  new Date()
     });
 
     res.status(201).json({
@@ -71,13 +77,12 @@ const generateInbox = async (req, res) => {
 // ── GET /api/inbox/:inboxId ──────────────────────────────────────────────────
 const getInbox = async (req, res) => {
   try {
-    const inbox = await Inbox.findOne({ where: { inboxId: req.params.inboxId } });
+    const inbox = memoryStore.getInbox(req.params.inboxId);
     if (!inbox) return res.status(404).json({ error: 'Inbox not found or expired' });
 
-    // Check if expired (MySQL has no auto-delete)
+    // Check if expired
     if (new Date(inbox.expiresAt) < new Date()) {
-      await Email.destroy({ where: { inboxId: inbox.inboxId } });
-      await inbox.destroy();
+      memoryStore.deleteInbox(inbox.inboxId);
       return res.status(404).json({ error: 'Inbox has expired' });
     }
 
@@ -102,8 +107,7 @@ const getDomainList = (_req, res) => res.json({ domains: getDomains() });
 const deleteInbox = async (req, res) => {
   try {
     const { inboxId } = req.params;
-    await Email.destroy({ where: { inboxId } });
-    const deleted = await Inbox.destroy({ where: { inboxId } });
+    const deleted = memoryStore.deleteInbox(inboxId);
     if (!deleted) return res.status(404).json({ error: 'Inbox not found' });
 
     req.app.get('io').to(inboxId).emit('inbox_deleted', { inboxId });

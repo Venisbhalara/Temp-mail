@@ -6,15 +6,10 @@ const helmet  = require('helmet');
 const morgan  = require('morgan');
 require('dotenv').config();
 
-const sequelize    = require('./db/sequelize');
 const inboxRoutes  = require('./routes/inboxRoutes');
 const emailRoutes  = require('./routes/emailRoutes');
 const { setupCronJobs } = require('./utils/cronJobs');
 const { globalRateLimiter } = require('./middlewares/rateLimiter');
-
-// Import models so Sequelize registers them before sync
-require('./models/Inbox');
-require('./models/Email');
 
 const app    = express();
 const server = http.createServer(app);
@@ -57,27 +52,12 @@ io.on('connection', (socket) => {
   socket.on('disconnect',  () => console.log(`🔴 Disconnected: ${socket.id}`));
 });
 
-// ── Database sync + Server Start ────────────────────────────────────────────
+// ── Server Start ────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log('✅ MySQL connected');
-    // alter:true updates table schema without dropping data
-    return sequelize.sync({ alter: true });
-  })
-  .then(() => {
-    console.log('✅ Tables synced');
-    setupCronJobs(io);
-    server.listen(PORT, () =>
-      console.log(`🚀 TempVault backend running on http://localhost:${PORT}`)
-    );
-  })
-  .catch((err) => {
-    console.error('❌ Database error:', err.message);
-    console.error('   Make sure MySQL is running and DB credentials in .env are correct.');
-    process.exit(1);
-  });
+setupCronJobs(io);
+server.listen(PORT, () =>
+  console.log(`🚀 TempVault backend running on http://localhost:${PORT}`)
+);
 
 module.exports = { app, io };

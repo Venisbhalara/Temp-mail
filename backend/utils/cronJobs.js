@@ -1,7 +1,5 @@
 const cron = require('node-cron');
-const { Op } = require('sequelize');
-const Inbox = require('../models/Inbox');
-const Email = require('../models/Email');
+const memoryStore = require('./memoryStore');
 
 /**
  * Initialize all scheduled background jobs.
@@ -13,26 +11,20 @@ const setupCronJobs = (io) => {
   cron.schedule('*/10 * * * *', async () => {
     try {
       console.log('🧹 Running expired inbox cleanup...');
-      const now = new Date();
       
-      // Find all expired inboxes
-      const expiredInboxes = await Inbox.findAll({
-        where: { expiresAt: { [Op.lt]: now } },
-        attributes: ['inboxId']
-      });
+      const expiredInboxes = memoryStore.getExpiredInboxes();
 
       if (expiredInboxes.length > 0) {
-        const expiredIds = expiredInboxes.map(i => i.inboxId);
-        
-        // Delete all emails for expired inboxes
-        const deletedEmails = await Email.destroy({
-          where: { inboxId: { [Op.in]: expiredIds } }
-        });
-        
-        // Delete expired inboxes
-        const deletedInboxes = await Inbox.destroy({
-          where: { inboxId: { [Op.in]: expiredIds } }
-        });
+        let deletedInboxes = 0;
+        let deletedEmails = 0;
+
+        for (const inbox of expiredInboxes) {
+          const emailCount = memoryStore.countEmailsByInboxId(inbox.inboxId);
+          if (memoryStore.deleteInbox(inbox.inboxId)) {
+            deletedInboxes++;
+            deletedEmails += emailCount;
+          }
+        }
 
         console.log(`   ✅ Removed ${deletedInboxes} expired inboxes and ${deletedEmails} emails`);
       }
@@ -48,14 +40,7 @@ const setupCronJobs = (io) => {
       const soon = new Date(now.getTime() + 5 * 60 * 1000);
       const min1 = new Date(now.getTime() + 60 * 1000);
 
-      const expiring = await Inbox.findAll({
-        where: {
-          expiresAt: {
-            [Op.gte]: min1,
-            [Op.lte]: soon
-          }
-        }
-      });
+      const expiring = memoryStore.getExpiringInboxes(min1, soon);
       
       expiring.forEach((inbox) => {
         const minutesLeft = Math.ceil((new Date(inbox.expiresAt) - now) / 60000);
@@ -70,7 +55,7 @@ const setupCronJobs = (io) => {
     }
   });
 
-  console.log('⏰ Cron jobs initialized (MySQL version)');
+  console.log('⏰ Cron jobs initialized (In-Memory version)');
 };
 
 module.exports = { setupCronJobs };

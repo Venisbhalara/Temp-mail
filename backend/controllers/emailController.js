@@ -1,7 +1,6 @@
-const { Op } = require('sequelize');
-const Email = require('../models/Email');
-const Inbox = require('../models/Inbox');
+const memoryStore = require('../utils/memoryStore');
 const { extractOTP } = require('../services/otpService');
+const { v4: uuidv4 } = require('uuid');
 
 const MAX_EMAILS = parseInt(process.env.MAX_EMAILS_PER_INBOX || '50', 10);
 
@@ -86,15 +85,10 @@ const getTemplate = (address, type) => {
 // ── GET /api/emails/:inboxId ──────────────────────────────────────────────────
 const getEmails = async (req, res) => {
   try {
-    const inbox = await Inbox.findOne({ where: { inboxId: req.params.inboxId } });
+    const inbox = memoryStore.getInbox(req.params.inboxId);
     if (!inbox) return res.status(404).json({ error: 'Inbox not found or expired' });
 
-    const emails = await Email.findAll({
-      where: { inboxId: req.params.inboxId },
-      attributes: { exclude: ['bodyHtml', 'bodyText'] }, // lean list
-      order: [['createdAt', 'DESC']],
-      limit: MAX_EMAILS,
-    });
+    const emails = memoryStore.getEmailsByInboxId(req.params.inboxId, MAX_EMAILS);
 
     res.json({ emails: emails.map(toSummary), total: emails.length });
   } catch (err) {
@@ -106,11 +100,11 @@ const getEmails = async (req, res) => {
 // ── GET /api/email/:id ────────────────────────────────────────────────────────
 const getEmail = async (req, res) => {
   try {
-    const email = await Email.findByPk(req.params.id);
+    const email = memoryStore.getEmail(req.params.id);
     if (!email) return res.status(404).json({ error: 'Email not found' });
 
     if (!email.isRead) {
-      await email.update({ isRead: true });
+      memoryStore.markEmailAsRead(req.params.id);
     }
     res.json(toFull(email));
   } catch (err) {
@@ -131,7 +125,7 @@ const receiveEmail = async (req, res) => {
     } = req.body;
 
     const address = (recipient || '').toLowerCase();
-    const inbox   = await Inbox.findOne({ where: { address } });
+    const inbox   = memoryStore.getInboxByAddress(address);
     if (!inbox) return res.status(404).json({ error: 'Inbox not found' });
 
     // Check inbox not expired
@@ -139,14 +133,15 @@ const receiveEmail = async (req, res) => {
       return res.status(410).json({ error: 'Inbox has expired' });
 
     // Check email count limit
-    const count = await Email.count({ where: { inboxId: inbox.inboxId } });
+    const count = memoryStore.countEmailsByInboxId(inbox.inboxId);
     if (count >= MAX_EMAILS) return res.status(429).json({ error: 'Inbox full' });
 
     const fromName  = parseSenderName(from || sender || '');
     const cleanHtml = sanitizeHtml(bodyHtml || '');
     const otpCode   = extractOTP(bodyText, cleanHtml, subject);
 
-    const email = await Email.create({
+    const email = memoryStore.createEmail({
+      id:        uuidv4(),
       inboxId:   inbox.inboxId,
       messageId: messageId || null,
       from:      sender || from,
@@ -157,9 +152,11 @@ const receiveEmail = async (req, res) => {
       bodyHtml:  cleanHtml,
       otpCode,
       size:      (bodyText || '').length + cleanHtml.length,
+      isRead:    false,
+      createdAt: new Date()
     });
 
-    await inbox.increment('emailCount');
+    memoryStore.incrementEmailCount(inbox.inboxId);
 
     req.app.get('io').to(inbox.inboxId).emit('new_email', {
       ...toSummary(email),
@@ -179,24 +176,27 @@ const simulateEmail = async (req, res) => {
     const { inboxId } = req.params;
     const { type = 'otp' } = req.body;
 
-    const inbox = await Inbox.findOne({ where: { inboxId } });
+    const inbox = memoryStore.getInbox(inboxId);
     if (!inbox) return res.status(404).json({ error: 'Inbox not found' });
 
     const tpl = getTemplate(inbox.address, type);
 
-    const email = await Email.create({
-      inboxId:  inbox.inboxId,
-      from:     tpl.from,
-      fromName: tpl.fromName,
-      to:       inbox.address,
-      subject:  tpl.subject,
-      bodyText: tpl.bodyText,
-      bodyHtml: tpl.bodyHtml,
-      otpCode:  tpl.otpCode,
-      size:     tpl.bodyText.length,
+    const email = memoryStore.createEmail({
+      id:        uuidv4(),
+      inboxId:   inbox.inboxId,
+      from:      tpl.from,
+      fromName:  tpl.fromName,
+      to:        inbox.address,
+      subject:   tpl.subject,
+      bodyText:  tpl.bodyText,
+      bodyHtml:  tpl.bodyHtml,
+      otpCode:   tpl.otpCode,
+      size:      tpl.bodyText.length,
+      isRead:    false,
+      createdAt: new Date()
     });
 
-    await inbox.increment('emailCount');
+    memoryStore.incrementEmailCount(inboxId);
 
     req.app.get('io').to(inboxId).emit('new_email', {
       ...toSummary(email),
@@ -213,12 +213,11 @@ const simulateEmail = async (req, res) => {
 // ── DELETE /api/email/:id ─────────────────────────────────────────────────────
 const deleteEmail = async (req, res) => {
   try {
-    const email = await Email.findByPk(req.params.id);
+    const email = memoryStore.deleteEmail(req.params.id);
     if (!email) return res.status(404).json({ error: 'Email not found' });
 
     const { inboxId } = email;
-    await email.destroy();
-    await Inbox.decrement('emailCount', { where: { inboxId } });
+    memoryStore.decrementEmailCount(inboxId);
 
     res.json({ message: 'Email deleted' });
   } catch (err) {
