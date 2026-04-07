@@ -20,20 +20,36 @@ const OTP_PATTERNS = [
 ];
 
 const AUTH_KEYWORDS = [
-  'verify', 'otp', 'code', 'pin', 'password', 'auth',
-  'login', 'sign', 'confirm', 'access', 'secure',
+  "verify",
+  "otp",
+  "code",
+  "pin",
+  "password",
+  "auth",
+  "login",
+  "sign",
+  "confirm",
+  "access",
+  "secure",
 ];
 
 const SPAM_KEYWORDS = [
-  'unsubscribe', 'newsletter', 'promotion', 'offer', 'discount',
-  'sale', 'deal', 'coupon', 'promo',
+  "unsubscribe",
+  "newsletter",
+  "promotion",
+  "offer",
+  "discount",
+  "sale",
+  "deal",
+  "coupon",
+  "promo",
 ];
 
 /**
  * Extract an OTP code from the email content.
  * Returns the code string or null if not found / not an auth email.
  */
-const extractOTP = (bodyText = '', bodyHtml = '', subject = '') => {
+const extractOTP = (bodyText = "", bodyHtml = "", subject = "") => {
   const searchText = `${subject} ${bodyText}`.toLowerCase();
 
   // Skip obvious marketing emails
