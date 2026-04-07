@@ -6,15 +6,7 @@ import { SkeletonEmailViewer } from './SkeletonLoader';
 import EmptyState from './EmptyState';
 import { useClipboard } from '../hooks/useClipboard';
 
-// SVG icons
-const DownloadIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="7 10 12 15 17 10"/>
-    <line x1="12" y1="15" x2="12" y2="3"/>
-  </svg>
-);
+
 const TrashIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -25,21 +17,7 @@ const TrashIcon = () => (
   </svg>
 );
 
-// Download email as a file
-const downloadEmail = (email, fmt) => {
-  const content = fmt === 'html'
-    ? email.bodyHtml || email.bodyText
-    : email.bodyText || '';
-  const mime = fmt === 'html' ? 'text/html' : 'text/plain';
-  const ext  = fmt === 'html' ? 'html' : 'txt';
-  const blob = new Blob([content], { type: mime });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `email-${email.id}.${ext}`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+
 
 export default function EmailViewer() {
   const { selectedEmail, emailLoading, deleteEmail } = useApp();
@@ -111,24 +89,6 @@ export default function EmailViewer() {
 
         {/* Actions */}
         <div className="email-viewer__actions">
-          {email.bodyHtml && (
-            <button
-              className="btn btn--ghost"
-              style={{ fontSize: 13, gap: 6 }}
-              onClick={() => downloadEmail(email, 'html')}
-              id="viewer-download-html"
-            >
-              <DownloadIcon /> HTML
-            </button>
-          )}
-          <button
-            className="btn btn--ghost"
-            style={{ fontSize: 13, gap: 6 }}
-            onClick={() => downloadEmail(email, 'txt')}
-            id="viewer-download-txt"
-          >
-            <DownloadIcon /> Text
-          </button>
           <button
             className="btn btn--danger-ghost"
             style={{ fontSize: 13, gap: 6 }}
