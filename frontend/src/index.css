@@ -127,7 +127,7 @@ body {
 
 /* ── App Shell ─────────────────────────────────────────────── */
 .app { min-height: 100vh; display: flex; flex-direction: column; }
-.container { width: 100%; max-width: 900px; margin: 0 auto; padding: 0 var(--sp-6); }
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(--sp-6); }
 
 /* ── Navbar ────────────────────────────────────────────────── */
 .navbar {
@@ -675,8 +675,9 @@ body {
   padding: var(--sp-3) var(--sp-6);
   border-bottom: 1px solid var(--border); flex-wrap: wrap;
 }
-.email-viewer__body { padding: var(--sp-6); }
+.email-viewer__body { padding: var(--sp-6); overflow-x: auto; }
 .email-viewer__body-html { line-height: 1.7; font-size: 15px; color: var(--text-secondary); }
+.email-viewer__body-html img { max-width: 100%; height: auto; }
 .email-viewer__body-html a { color: var(--accent); }
 .email-viewer__body-text {
   font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary);
@@ -765,9 +766,9 @@ body {
 }
 /* when email is selected show split view */
 .two-col--split {
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: 1fr 340px;
 }
-@media (max-width: 900px) { .two-col, .two-col--split { grid-template-columns: 1fr; } }
+@media (max-width: 950px) { .two-col, .two-col--split { grid-template-columns: 1fr; } }
 
 /* ── Simulate toolbar ────────────────────────────────────────── */
 .sim-bar {

@@ -104,8 +104,8 @@ function Layout() {
               <div
                 className={`two-col ${selectedEmail ? "two-col--split" : ""}`}
               >
-                <InboxPanel />
                 {selectedEmail && <EmailViewer />}
+                <InboxPanel />
               </div>
             </>
           ) : (
