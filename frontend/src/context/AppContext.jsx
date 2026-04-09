@@ -202,6 +202,10 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const closeEmail = () => {
+    dispatch({ type: "SET_SELECTED", payload: null });
+  };
+
 
   const deleteInbox = async () => {
     if (!state.inbox) return;
@@ -240,6 +244,7 @@ export const AppProvider = ({ children }) => {
         generateInbox,
         fetchEmails,
         selectEmail,
+        closeEmail,
         deleteEmail,
         deleteInbox,
         toast,

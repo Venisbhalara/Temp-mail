@@ -17,10 +17,18 @@ const TrashIcon = () => (
   </svg>
 );
 
+const BackIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"/>
+    <polyline points="12 19 5 12 12 5"/>
+  </svg>
+);
+
 
 
 export default function EmailViewer() {
-  const { selectedEmail, emailLoading, deleteEmail } = useApp();
+  const { selectedEmail, emailLoading, deleteEmail, closeEmail } = useApp();
 
   // No email selected
   if (!selectedEmail && !emailLoading) {
@@ -66,37 +74,50 @@ export default function EmailViewer() {
       >
         {/* Header */}
         <div className="email-viewer__header">
-          <h2 className="email-viewer__subject">{email.subject}</h2>
+          <div className="email-viewer__top-row">
+            <button 
+              className="email-viewer__back-btn" 
+              onClick={closeEmail}
+              title="Back to inbox"
+            >
+              <BackIcon />
+            </button>
+            <h2 className="email-viewer__subject">{email.subject}</h2>
+            <div className="email-viewer__actions" style={{ padding: 0, border: 'none', marginLeft: 'auto' }}>
+              <button
+                className="btn btn--danger-ghost"
+                style={{ fontSize: 13, gap: 6, padding: '6px 14px' }}
+                onClick={() => {
+                  deleteEmail(email.id);
+                  closeEmail();
+                }}
+                id="viewer-delete-btn"
+              >
+                <TrashIcon /> Delete
+              </button>
+            </div>
+          </div>
+
           <div className="email-viewer__meta">
-            <div className="email-viewer__meta-row">
-              <span className="email-viewer__meta-label">From</span>
-              <span className="email-viewer__meta-value">
-                {email.fromName
-                  ? `${email.fromName} <${email.from}>`
-                  : email.from}
-              </span>
+            <div className="email-viewer__meta-grid">
+              <div className="email-viewer__meta-row">
+                <span className="email-viewer__meta-label">From</span>
+                <span className="email-viewer__meta-value">
+                  {email.fromName
+                    ? `${email.fromName} <${email.from}>`
+                    : email.from}
+                </span>
+              </div>
+              <div className="email-viewer__meta-row">
+                <span className="email-viewer__meta-label">Date</span>
+                <span className="email-viewer__meta-value">{receivedAt}</span>
+              </div>
             </div>
             <div className="email-viewer__meta-row">
               <span className="email-viewer__meta-label">To</span>
               <span className="email-viewer__meta-value">{email.to}</span>
             </div>
-            <div className="email-viewer__meta-row">
-              <span className="email-viewer__meta-label">Date</span>
-              <span className="email-viewer__meta-value">{receivedAt}</span>
-            </div>
           </div>
-        </div>
-
-        {/* Actions */}
-        <div className="email-viewer__actions">
-          <button
-            className="btn btn--danger-ghost"
-            style={{ fontSize: 13, gap: 6 }}
-            onClick={() => deleteEmail(email.id)}
-            id="viewer-delete-btn"
-          >
-            <TrashIcon /> Delete
-          </button>
         </div>
 
         {/* OTP Banner — shown when OTP detected */}

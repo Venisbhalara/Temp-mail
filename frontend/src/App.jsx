@@ -47,7 +47,7 @@ function Layout() {
       <Navbar />
 
       <main className="main-layout">
-        <div className="container" style={{ maxWidth: 900 }}>
+        <div className="container" style={{ maxWidth: selectedEmail ? 1040 : 900, transition: 'max-width 0.4s ease' }}>
           {/* ── Tab bar ── */}
           <div className="tab-bar" role="tablist">
             <button
@@ -82,31 +82,32 @@ function Layout() {
           {/* ── Tab panel content ── */}
           {activeTab === "email" ? (
             <>
-              {/* Hero */}
-              <section className="hero" aria-labelledby="hero-heading">
-                <span className="hero__handwrite" aria-hidden="true">
-                  Temporary
-                </span>
-                <h1 className="hero__title" id="hero-heading">
-                  Email Address
-                </h1>
-                {/* <p className="hero__sub">
-                  Forget about spam, advertising mailings, hacking and attacking robots. Keep
-                  your real mailbox clean and secure. Temp Mail provides temporary, secure,
-                  anonymous, free, disposable email address.
-                </p> */}
-              </section>
+              {selectedEmail ? (
+                /* Focus Mode Viewer */
+                <div style={{ marginTop: 'var(--sp-6)' }}>
+                  <EmailViewer />
+                </div>
+              ) : (
+                <>
+                  {/* Hero */}
+                  <section className="hero" aria-labelledby="hero-heading">
+                    <span className="hero__handwrite" aria-hidden="true">
+                      Temporary
+                    </span>
+                    <h1 className="hero__title" id="hero-heading">
+                      Email Address
+                    </h1>
+                  </section>
 
-              {/* Email Box */}
-              <EmailBox />
+                  {/* Email Box */}
+                  <EmailBox />
 
-              {/* Inbox — full width when no email selected, split when one is */}
-              <div
-                className={`two-col ${selectedEmail ? "two-col--split" : ""}`}
-              >
-                {selectedEmail && <EmailViewer />}
-                <InboxPanel />
-              </div>
+                  {/* Inbox list */}
+                  <div className="two-col">
+                    <InboxPanel />
+                  </div>
+                </>
+              )}
             </>
           ) : (
             /* SMS placeholder */
