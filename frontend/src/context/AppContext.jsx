@@ -183,7 +183,9 @@ export const AppProvider = ({ children }) => {
     dispatch({ type: "MARK_READ", payload: email.id });
     dispatch({ type: "SET_EMAIL_LOADING", payload: true });
     try {
-      const res = await fetch(`${API}/email/${email.id}?inboxId=${state.inbox.inboxId}`);
+      const res = await fetch(
+        `${API}/email/${email.id}?inboxId=${state.inbox.inboxId}`,
+      );
       const full = await res.json();
       dispatch({ type: "SET_SELECTED", payload: full });
     } catch {
@@ -194,7 +196,9 @@ export const AppProvider = ({ children }) => {
   const deleteEmail = async (id) => {
     if (!state.inbox) return;
     try {
-      await fetch(`${API}/email/${id}?inboxId=${state.inbox.inboxId}`, { method: "DELETE" });
+      await fetch(`${API}/email/${id}?inboxId=${state.inbox.inboxId}`, {
+        method: "DELETE",
+      });
       dispatch({ type: "REMOVE_EMAIL", payload: id });
       toast("Email deleted");
     } catch {
@@ -205,7 +209,6 @@ export const AppProvider = ({ children }) => {
   const closeEmail = () => {
     dispatch({ type: "SET_SELECTED", payload: null });
   };
-
 
   const deleteInbox = async () => {
     if (!state.inbox) return;

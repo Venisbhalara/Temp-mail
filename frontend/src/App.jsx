@@ -47,7 +47,13 @@ function Layout() {
       <Navbar />
 
       <main className="main-layout">
-        <div className="container" style={{ maxWidth: selectedEmail ? 1040 : 900, transition: 'max-width 0.4s ease' }}>
+        <div
+          className="container"
+          style={{
+            maxWidth: selectedEmail ? 1040 : 900,
+            transition: "max-width 0.4s ease",
+          }}
+        >
           {/* ── Tab bar ── */}
           <div className="tab-bar" role="tablist">
             <button
@@ -84,7 +90,7 @@ function Layout() {
             <>
               {selectedEmail ? (
                 /* Focus Mode Viewer */
-                <div style={{ marginTop: 'var(--sp-6)' }}>
+                <div style={{ marginTop: "var(--sp-6)" }}>
                   <EmailViewer />
                 </div>
               ) : (
