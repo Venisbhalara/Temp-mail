@@ -97,14 +97,14 @@ function EmailCard({ email, isActive, onClick }) {
         <div className="email-card__avatar">
           {getAvatar(email.fromName || email.from)}
         </div>
-        <div>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div className="email-card__from">{email.fromName || email.from}</div>
-          <div className="email-card__time">{formatTime(email.receivedAt)}</div>
+          <div className="email-card__time text-muted">{formatTime(email.receivedAt)}</div>
         </div>
       </div>
 
       {/* Subject column */}
-      <div>
+      <div className="email-card__subject-wrap">
         <div className="email-card__subject">{email.subject}</div>
         <div className="email-card__preview">{email.preview}</div>
         {email.otpCode && (
@@ -115,7 +115,7 @@ function EmailCard({ email, isActive, onClick }) {
       </div>
 
       {/* View column */}
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <div className="email-card__view-wrap" style={{ display: 'flex', justifyContent: 'center' }}>
         <span className="email-card__view-btn" title="View email">
           <ViewIcon />
         </span>
@@ -138,18 +138,20 @@ export default function InboxPanel() {
 
         {/* Toolbar: checkbox / refresh / dots */}
         <div className="inbox-toolbar">
-          <input type="checkbox" className="inbox-toolbar__checkbox" aria-label="Select all" />
-          <button
-            className="inbox-toolbar__btn"
-            onClick={fetchEmails}
-            title="Refresh inbox"
-            id="inbox-refresh-btn"
-          >
-            <RefreshIcon />
-          </button>
-          <button className="inbox-toolbar__btn" title="More options" id="inbox-dots-btn">
-            <DotsIcon />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+            <input type="checkbox" className="inbox-toolbar__checkbox" aria-label="Select all" />
+            <button
+              className="inbox-toolbar__btn"
+              onClick={fetchEmails}
+              title="Refresh inbox"
+              id="inbox-refresh-btn"
+            >
+              <RefreshIcon />
+            </button>
+            <button className="inbox-toolbar__btn" title="More options" id="inbox-dots-btn">
+              <DotsIcon />
+            </button>
+          </div>
 
           {/* Connection dot */}
           <span

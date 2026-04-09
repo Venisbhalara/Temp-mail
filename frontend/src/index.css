@@ -739,25 +739,29 @@ body {
 /* Column headers */
 .inbox-columns {
   display: grid;
-  grid-template-columns: 1fr 1.6fr 80px;
+  grid-template-columns: 220px 1fr 100px;
   gap: var(--sp-4);
   padding: var(--sp-3) var(--sp-5);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .inbox-col-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.inbox-col-header svg,
-.inbox-col-header .col-icon {
-  font-size: 15px;
-  opacity: 0.7;
+.inbox-col-header svg {
+  font-size: 14px;
+  opacity: 0.6;
 }
 
 /* ── Inbox Panel (legacy wiring, kept for logic) ─────────── */
@@ -778,37 +782,43 @@ body {
 /* ── Email Card ─────────────────────────────────────────────── */
 .email-card {
   display: grid;
-  grid-template-columns: 1fr 1.6fr 80px;
+  grid-template-columns: 220px 1fr 100px;
   gap: var(--sp-4);
   align-items: center;
-  padding: var(--sp-4) var(--sp-5);
+  padding: var(--sp-5) var(--sp-5);
   cursor: pointer;
   border-bottom: 1px solid var(--border);
-  transition: background var(--dur-fast);
+  transition: all var(--dur-normal) var(--ease);
   position: relative;
+  background: var(--bg-surface);
 }
 .email-card > div {
   min-width: 0;
+  width: 100%;
 }
 .email-card:last-child {
   border-bottom: none;
 }
 .email-card:hover {
   background: var(--bg-hover);
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .email-card--active {
   background: var(--accent-surface);
+  box-shadow: inset 4px 0 0 var(--accent);
 }
 .email-card--unread::before {
   content: "";
   position: absolute;
-  left: 0;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  width: 3px;
-  height: 50%;
+  width: 8px;
+  height: 8px;
   background: var(--accent);
-  border-radius: 0 var(--r-full) var(--r-full) 0;
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .email-card__avatar {
@@ -824,7 +834,7 @@ body {
   font-weight: 700;
   color: var(--accent);
   border: 1.5px solid rgba(59, 130, 246, 0.2);
-  margin-right: var(--sp-3);
+  margin-right: var(--sp-4);
 }
 
 .email-card__from-wrap {
@@ -834,12 +844,13 @@ body {
   min-width: 0;
 }
 .email-card__from {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 140px;
 }
 .email-card--unread .email-card__from {
   font-weight: 700;
@@ -847,7 +858,7 @@ body {
 .email-card__time {
   font-size: 11px;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 .email-card__subject {
