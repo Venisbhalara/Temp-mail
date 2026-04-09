@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import { useClipboard } from '../hooks/useClipboard';
@@ -28,6 +29,42 @@ const TrashIcon = () => (
   </svg>
 );
 
+const LOADING_MESSAGES = [
+  "Generating your secure address...",
+  "Crafting a unique mailbox...",
+  "Securing your temporary identity...",
+  "Allocating private storage...",
+  "Finalizing your secure link..."
+];
+
+function PremiumLoadingText() {
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="premium-loader">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={index}
+          className="premium-loader-text"
+          initial={{ opacity: 0, y: 4, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -4, filter: 'blur(4px)' }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+        >
+          {LOADING_MESSAGES[index]}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function EmailBox() {
   const { inbox, loading, generateInbox, deleteInbox, minutesLeft } = useApp();
   const { copied, copy } = useClipboard();
@@ -54,7 +91,7 @@ export default function EmailBox() {
       {/* ── Dark pill email field ── */}
       <div className="email-box__field">
         {loading ? (
-          <div className="skeleton skeleton-line" style={{ flex: 1, height: 20 }} />
+          <PremiumLoadingText />
         ) : (
           <span className="email-box__address" id="email-address">
             {inbox?.address || '—'}
@@ -96,8 +133,10 @@ export default function EmailBox() {
           disabled={loading}
           id="action-refresh-btn"
         >
-          <span className="action-btn__icon"><RefreshIcon /></span>
-          {loading ? 'Generating…' : 'Refresh'}
+          <span className={`action-btn__icon ${loading ? 'animate-spin' : ''}`}>
+            <RefreshIcon />
+          </span>
+          {loading ? 'Refreshing...' : 'Refresh'}
         </button>
 
         {/* Delete */}

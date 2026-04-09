@@ -36,6 +36,8 @@ app.set('io', io);
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api', inboxRoutes);
 app.use('/api', emailRoutes);
+const smsRoutes = require('./routes/smsRoutes');
+app.use('/api/sms', smsRoutes);
 app.get('/health', (_req, res) =>
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 );
