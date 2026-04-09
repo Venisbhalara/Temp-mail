@@ -24,9 +24,14 @@ export default function Footer() {
               <li>
                 <Link to="/">Temporary Email</Link>
               </li>
-              {/* <li><Link to="/">Temporary SMS</Link></li> */}
+              <li>
+                <Link to="/features">Features & FAQ</Link>
+              </li>
               <li>
                 <Link to="/contact">Support</Link>
+              </li>
+              <li>
+                <Link to="/about">About Us</Link>
               </li>
             </ul>
           </div>
@@ -54,20 +59,20 @@ export default function Footer() {
               </li>
               {/* <li>
                 <a
-                  href="https://github.com"
+                  href="https://twitter.com/TempMail"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  X (Twitter)
+                </a>
+              </li> */}
+              {/* <li>
+                <a
+                  href="https://github.com/TempMail"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Twitter
                 </a>
               </li> */}
             </ul>
