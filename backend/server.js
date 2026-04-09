@@ -123,7 +123,7 @@ setupCronJobs(io);
 startMailPoller(io); // Start the real-time mail listener
 
 server.listen(PORT, () =>
-  console.log(`🚀 TempVault backend running on http://localhost:${PORT}`)
+  console.log(`🚀 TempMail backend running on http://localhost:${PORT}`)
 );
 
 module.exports = { app, io };

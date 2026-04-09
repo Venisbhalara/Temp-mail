@@ -1,4 +1,4 @@
-# ⚡ TempVault — Disposable Email, Reinvented
+# ⚡ TempMail — Disposable Email, Reinvented
 
 A production-ready temporary email application with real-time inbox, OTP detection, and a premium startup-grade UI.
 
@@ -32,7 +32,7 @@ Open **http://localhost:5173** in your browser.
 ## 🏗️ Project Structure
 
 ```
-tempvault/
+tempmail/
 ├── backend/
 │   ├── server.js               # Express + Socket.io entry point
 │   ├── models/
@@ -108,7 +108,7 @@ tempvault/
 ### Environment Variables
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/tempvault
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/tempmail
 FRONTEND_URL=https://yourapp.vercel.app
 EMAIL_DOMAINS=yourdomain.com
 INBOX_EXPIRY_MINUTES=60

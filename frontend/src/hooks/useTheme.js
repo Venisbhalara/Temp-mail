@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'tempvault-theme';
+const STORAGE_KEY = 'tempmail-theme';
 
 export const useTheme = () => {
   const [theme, setTheme] = useState(() => {

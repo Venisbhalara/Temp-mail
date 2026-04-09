@@ -1,7 +1,7 @@
 {
-  "name": "tempvault-backend",
+  "name": "tempmail-backend",
   "version": "1.0.0",
-  "description": "TempVault - Production-ready temporary email backend",
+  "description": "TempMail - Production-ready temporary email backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,5 +1,5 @@
 {
-  "name": "tempvault-frontend",
+  "name": "tempmail-frontend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "framer-motion": "^11.2.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.14.0",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
