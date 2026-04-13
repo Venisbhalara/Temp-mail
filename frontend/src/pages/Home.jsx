@@ -133,7 +133,7 @@ function SmsTabContent() {
     <>
       {selectedSms ? (
         /* SMS Viewer — focus mode */
-        <div style={{ marginTop: 'var(--sp-6)' }}>
+        <div style={{ marginTop: "var(--sp-6)" }}>
           <SmsViewer />
         </div>
       ) : (
@@ -144,7 +144,7 @@ function SmsTabContent() {
               Temporary
             </span>
             <h1 className="hero__title" id="sms-hero-heading">
-              Indian Phone Number
+              Phone Number
             </h1>
           </section>
 
@@ -160,4 +160,3 @@ function SmsTabContent() {
     </>
   );
 }
-
