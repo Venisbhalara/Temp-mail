@@ -3,6 +3,10 @@ import EmailBox from "../components/EmailBox";
 import InboxPanel from "../components/InboxPanel";
 import EmailViewer from "../components/EmailViewer";
 import { useApp } from "../context/AppContext";
+import { SmsProvider, useSms } from "../context/SmsContext";
+import SmsBox from "../components/SmsBox";
+import SmsInboxPanel from "../components/SmsInboxPanel";
+import SmsViewer from "../components/SmsViewer";
 
 // SVG icons for tab bar
 const MailIcon = () => (
@@ -110,28 +114,50 @@ export default function Home() {
           )}
         </>
       ) : (
-        /* SMS placeholder */
-        <div
-          style={{
-            textAlign: "center",
-            padding: "80px 24px",
-            color: "var(--text-muted)",
-            fontSize: 15,
-          }}
-        >
-          <div style={{ fontSize: 48, marginBottom: 16 }}>📱</div>
-          <p
-            style={{
-              fontWeight: 600,
-              color: "var(--text-secondary)",
-              marginBottom: 8,
-            }}
-          >
-            Temporary SMS coming soon
-          </p>
-          <p>This feature is not yet available.</p>
-        </div>
+        /* ── SMS Tab ── */
+        <SmsProvider>
+          <SmsTabContent />
+        </SmsProvider>
       )}
     </div>
   );
 }
+
+/**
+ * Inner component so it can access SmsContext (which is provided above).
+ */
+function SmsTabContent() {
+  const { selectedSms } = useSms();
+
+  return (
+    <>
+      {selectedSms ? (
+        /* SMS Viewer — focus mode */
+        <div style={{ marginTop: 'var(--sp-6)' }}>
+          <SmsViewer />
+        </div>
+      ) : (
+        <>
+          {/* Hero */}
+          <section className="hero" aria-labelledby="sms-hero-heading">
+            <span className="hero__handwrite" aria-hidden="true">
+              Temporary
+            </span>
+            <h1 className="hero__title" id="sms-hero-heading">
+              Indian Phone Number
+            </h1>
+          </section>
+
+          {/* Number box */}
+          <SmsBox />
+
+          {/* SMS Inbox */}
+          <div className="two-col">
+            <SmsInboxPanel />
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+

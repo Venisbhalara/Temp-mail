@@ -14,6 +14,8 @@ import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Features from "./pages/Features";
 
+import { ReactLenis } from "lenis/react";
+
 /**
  * ScrollToTop helper component to ensure navigation always starts at the top
  */
@@ -66,10 +68,12 @@ function Layout() {
 
 export default function App() {
   return (
-    <Router>
-      <AppProvider>
-        <Layout />
-      </AppProvider>
-    </Router>
+    <ReactLenis root>
+      <Router>
+        <AppProvider>
+          <Layout />
+        </AppProvider>
+      </Router>
+    </ReactLenis>
   );
 }

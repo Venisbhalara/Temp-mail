@@ -46,11 +46,21 @@ app.get('/health', (_req, res) =>
 io.on('connection', (socket) => {
   console.log(`🟢 Client connected: ${socket.id}`);
 
+  // Email inbox rooms
   socket.on('join_inbox',  (inboxId) => {
     socket.join(inboxId);
-    console.log(`   └─ ${socket.id} joined inbox [${inboxId}]`);
+    console.log(`   └─ ${socket.id} joined email inbox [${inboxId}]`);
   });
   socket.on('leave_inbox', (inboxId) => socket.leave(inboxId));
+
+  // SMS inbox rooms  (room name: "sms_{number}")
+  socket.on('join_sms_inbox', (number) => {
+    const room = `sms_${number}`;
+    socket.join(room);
+    console.log(`   └─ ${socket.id} joined SMS inbox [${room}]`);
+  });
+  socket.on('leave_sms_inbox', (number) => socket.leave(`sms_${number}`));
+
   socket.on('disconnect',  () => console.log(`🔴 Disconnected: ${socket.id}`));
 });
 
@@ -116,11 +126,39 @@ const startMailPoller = (io) => {
   }, 3000); // Poll every 3 seconds for fast response
 };
 
+// --- SMS Background Poller ---
+const tempSmsService = require('./services/tempSmsService');
+
+const startSmsPoller = (io) => {
+  // Track seenIds per room in-server (service handles dedup too)
+  setInterval(async () => {
+    const activeRooms = io.sockets.adapter.rooms;
+    for (const [roomId, room] of activeRooms.entries()) {
+      if (!roomId.startsWith('sms_') || room.size === 0) continue;
+
+      const number = roomId.replace('sms_', '');
+      if (!number || !number.startsWith('91')) continue;
+
+      try {
+        const newMessages = await tempSmsService.getNewSmsMessages(number);
+        // Emit in chronological order (oldest first)
+        newMessages.reverse().forEach(msg => {
+          io.to(roomId).emit('new_sms', { ...msg, number });
+          console.log(`📱 New SMS for ${number} from ${msg.from}`);
+        });
+      } catch (err) {
+        // Silent fail — don't crash the poller
+      }
+    }
+  }, 8000); // Poll every 8 seconds
+};
+
 // --- Server Start ---
 const PORT = process.env.PORT || 5000;
 
 setupCronJobs(io);
-startMailPoller(io); // Start the real-time mail listener
+startMailPoller(io); // Start the real-time email listener
+startSmsPoller(io);  // Start the real-time SMS listener
 
 server.listen(PORT, () =>
   console.log(`🚀 TempMail backend running on http://localhost:${PORT}`)
