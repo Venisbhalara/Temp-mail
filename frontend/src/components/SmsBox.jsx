@@ -77,11 +77,11 @@ function PhoneLoadingText() {
 }
 
 export default function SmsBox() {
-  const { activeNumber, numbersLoading, smsNumbers, cycleNumber, refreshInbox, messagesLoading } = useSms();
+  const { activeNumber, numbersLoading, numberChanging, changeNumber, refreshInbox, messagesLoading } = useSms();
   const { copied, copy } = useClipboard();
 
   const handleCopy = () => activeNumber && copy(activeNumber.fullNumber);
-  const isLoading  = numbersLoading || (!activeNumber && smsNumbers.length === 0);
+  const isLoading  = numbersLoading || (!activeNumber && !numberChanging);
 
   return (
     <motion.div
@@ -137,17 +137,17 @@ export default function SmsBox() {
           {messagesLoading ? 'Refreshing...' : 'Refresh'}
         </button>
 
-        {smsNumbers.length > 1 && (
-          <button
-            className="action-btn sms-action-btn--change"
-            onClick={cycleNumber}
-            disabled={isLoading}
-            id="sms-action-change-btn"
-          >
-            <span className="action-btn__icon"><ShuffleIcon /></span>
-            Change Number
-          </button>
-        )}
+        <button
+          className={`action-btn sms-action-btn--change ${numberChanging ? 'sms-action-btn--changing' : ''}`}
+          onClick={changeNumber}
+          disabled={numberChanging || numbersLoading}
+          id="sms-action-change-btn"
+        >
+          <span className={`action-btn__icon ${numberChanging ? 'animate-spin' : ''}`}>
+            <ShuffleIcon />
+          </span>
+          {numberChanging ? 'Switching...' : 'Change Number'}
+        </button>
       </div>
 
       {/* Public disclaimer */}

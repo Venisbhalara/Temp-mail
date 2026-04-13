@@ -2377,3 +2377,22 @@ body {
     padding: var(--sp-4);
   }
 }
+
+/* ── Spin animation utility ───────────────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}
+
+/* Change Number loading state */
+.sms-action-btn--changing {
+  pointer-events: none;
+  opacity: 0.7;
+  border-color: var(--accent-dim) !important;
+  color: var(--accent) !important;
+}
+

@@ -33,6 +33,18 @@ const getInbox = async (req, res) => {
   }
 };
 
+// ── GET /api/sms/next/:current ───────────────────────────────────────────────
+const getNextNumber = async (req, res) => {
+  const { current } = req.params;
+  try {
+    const nextNumber = await tempSmsService.getNextIndianNumber(current || '');
+    res.json({ number: nextNumber });
+  } catch (err) {
+    console.error('[SMS] getNextNumber error:', err.message);
+    res.status(500).json({ error: 'Failed to get next number', details: err.message });
+  }
+};
+
 // ── POST /api/sms/refresh/:number ─────────────────────────────────────────────
 const refreshInbox = async (req, res) => {
   const { number } = req.params;
@@ -64,6 +76,7 @@ const refreshNumbers = async (req, res) => {
 module.exports = {
   getNumbers,
   getInbox,
+  getNextNumber,
   refreshInbox,
   refreshNumbers,
 };

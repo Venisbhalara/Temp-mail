@@ -10,12 +10,16 @@ const router  = express.Router();
 const {
   getNumbers,
   getInbox,
+  getNextNumber,
   refreshInbox,
   refreshNumbers,
 } = require('../controllers/smsController');
 
 // List available Indian numbers
 router.get('/numbers', getNumbers);
+
+// Get a fresh random number different from :current
+router.get('/next/:current', getNextNumber);
 
 // Get SMS inbox for a specific number
 router.get('/inbox/:number', getInbox);

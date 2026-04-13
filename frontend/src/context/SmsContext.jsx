@@ -22,13 +22,14 @@ const SOCKET_URL  = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
 // ── Initial state ─────────────────────────────────────────────────────────────
 const initialState = {
-  smsNumbers: [],          // [{ number, display, fullNumber }]
+  smsNumbers: [],
   numbersLoading: false,
-  activeNumber: null,      // { number, display, fullNumber }
-  smsMessages: [],         // [{ id, from, body, receivedAt, otpCode }]
+  activeNumber: null,
+  smsMessages: [],
   messagesLoading: false,
-  selectedSms: null,       // currently opened message
+  selectedSms: null,
   smsConnected: false,
+  numberChanging: false,   // true while "Change Number" is in flight
   toasts: [],
 };
 
@@ -55,6 +56,8 @@ const reducer = (state, action) => {
       return { ...state, selectedSms: action.payload };
     case 'SET_CONNECTED':
       return { ...state, smsConnected: action.payload };
+    case 'SET_NUMBER_CHANGING':
+      return { ...state, numberChanging: action.payload };
     case 'ADD_TOAST':
       return { ...state, toasts: [...state.toasts, action.payload] };
     case 'REMOVE_TOAST':
@@ -163,17 +166,29 @@ export const SmsProvider = ({ children }) => {
     }
   }, [state.activeNumber, toast]);
 
-  const cycleNumber = useCallback(() => {
-    const { smsNumbers, activeNumber } = state;
-    if (smsNumbers.length <= 1) return;
-    const currentIdx = smsNumbers.findIndex(n => n.number === activeNumber?.number);
-    const nextIdx    = (currentIdx + 1) % smsNumbers.length;
-    selectNumber(smsNumbers[nextIdx]);
-    toast(`Switched to ${smsNumbers[nextIdx].display}`, 'success');
-  }, [state, selectNumber, toast]);
+  // ── Change Number ────────────────────────────────────────────────────────────
+  // Fetches a FRESH random number from the backend pool — never repeats the current one.
+  const changeNumber = useCallback(async () => {
+    const currentNumber = state.activeNumber?.number || '';
+    dispatch({ type: 'SET_NUMBER_CHANGING', payload: true });
+    try {
+      const res = await fetch(`${API}/next/${currentNumber}`);
+      if (!res.ok) throw new Error('Could not get next number');
+      const { number: nextNumberObj } = await res.json();
+      if (!nextNumberObj) throw new Error('Empty response');
+      dispatch({ type: 'SET_ACTIVE_NUMBER', payload: nextNumberObj });
+      dispatch({ type: 'SET_NUMBER_CHANGING', payload: false });
+      connectSmsSocket(nextNumberObj.number);
+      await fetchInbox(nextNumberObj.number);
+      toast(`🇮🇳 Switched to ${nextNumberObj.display}`, 'success');
+    } catch (err) {
+      dispatch({ type: 'SET_NUMBER_CHANGING', payload: false });
+      toast('Could not change number — try again', 'error');
+    }
+  }, [state.activeNumber, connectSmsSocket, fetchInbox, toast]);
 
-  const selectSms  = useCallback((sms) => dispatch({ type: 'SET_SELECTED', payload: sms }), []);
-  const closeSms   = useCallback(() => dispatch({ type: 'SET_SELECTED', payload: null }), []);
+  const selectSms = useCallback((sms) => dispatch({ type: 'SET_SELECTED', payload: sms }), []);
+  const closeSms  = useCallback(() => dispatch({ type: 'SET_SELECTED', payload: null }), []);
 
   // ── Bootstrap on mount ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -194,7 +209,7 @@ export const SmsProvider = ({ children }) => {
       selectNumber,
       fetchInbox,
       refreshInbox,
-      cycleNumber,
+      changeNumber,
       selectSms,
       closeSms,
       toast,
