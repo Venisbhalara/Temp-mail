@@ -119,7 +119,6 @@ const generateInbox = async (req, res) => {
     }
     res.status(500).json({ error: "Failed to generate email address" });
   }
-  }
 };
 
 // ── GET /api/inbox/:inboxId ──────────────────────────────────────────────────

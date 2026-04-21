@@ -49,14 +49,15 @@ function PremiumLoadingText() {
 
   return (
     <div className="premium-loader">
+      <div className="loading-indicator" />
       <AnimatePresence mode="wait">
         <motion.span
           key={index}
           className="premium-loader-text"
-          initial={{ opacity: 0, y: 4, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -4, filter: 'blur(4px)' }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          initial={{ opacity: 0, x: 10, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, x: -10, filter: 'blur(8px)' }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           {LOADING_MESSAGES[index]}
         </motion.span>
@@ -90,13 +91,31 @@ export default function EmailBox() {
     >
       {/* ── Dark pill email field ── */}
       <div className="email-box__field">
-        {loading ? (
-          <PremiumLoadingText />
-        ) : (
-          <span className="email-box__address" id="email-address">
-            {inbox?.address || '—'}
-          </span>
-        )}
+        <AnimatePresence mode="wait">
+          {loading ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ flex: 1, display: 'flex', alignItems: 'center' }}
+            >
+              <PremiumLoadingText />
+            </motion.div>
+          ) : (
+            <motion.span
+              key="address"
+              className="email-box__address"
+              id="email-address"
+              initial={{ opacity: 0, filter: 'blur(10px)', y: 5 }}
+              animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {inbox?.address || '—'}
+            </motion.span>
+          )}
+        </AnimatePresence>
 
         {/* Blue Copy button inside pill */}
         <button
