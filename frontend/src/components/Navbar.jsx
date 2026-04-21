@@ -7,7 +7,7 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="container" style={{ maxWidth: 960 }}>
+      <div className="container">
         <div className="navbar__inner">
           {/* Logo */}
           <Link to="/" className="navbar__logo">

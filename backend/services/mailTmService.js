@@ -1,18 +1,70 @@
 const axios = require("axios");
+const http = require("http");
+const https = require("https");
 
 const MAILTM_BASE = "https://api.mail.tm";
+
+// Create HTTP agent with Keep-Alive for connection pooling
+const httpAgent = new http.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 1000,
+  maxSockets: 50,
+  maxFreeSockets: 10,
+  timeout: 60000,
+  freeSocketTimeout: 30000,
+});
+
+const httpsAgent = new https.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 1000,
+  maxSockets: 50,
+  maxFreeSockets: 10,
+  timeout: 60000,
+  freeSocketTimeout: 30000,
+});
 
 const api = axios.create({
   baseURL: MAILTM_BASE,
   headers: { "Content-Type": "application/json" },
-  timeout: 10000,
+  timeout: 8000,
+  httpAgent,
+  httpsAgent,
 });
 
-// ── Get available domains from Mail.tm ───────────────────────────────────────
+// Domain caching
+let cachedDomains = null;
+let domainsCacheTime = 0;
+const DOMAINS_CACHE_TTL = 3600000; // 1 hour
+
+// ── Get available domains from Mail.tm (with caching) ───────────────────────────────────
 const getDomains = async () => {
-  const res = await api.get("/domains");
-  // Hydra format: res.data['hydra:member']
-  return res.data["hydra:member"] || res.data;
+  const now = Date.now();
+  
+  // Return cached domains if valid
+  if (cachedDomains && (now - domainsCacheTime) < DOMAINS_CACHE_TTL) {
+    return cachedDomains;
+  }
+
+  try {
+    const res = await api.get("/domains");
+    cachedDomains = res.data["hydra:member"] || res.data;
+    domainsCacheTime = now;
+    return cachedDomains;
+  } catch (err) {
+    // If fresh fetch fails, return cached domains even if expired
+    if (cachedDomains) {
+      console.warn("Fresh domain fetch failed, using expired cache");
+      return cachedDomains;
+    }
+    throw err;
+  }
+};
+
+// Force refresh domains cache
+const refreshDomains = async () => {
+  domainsCacheTime = 0;
+  cachedDomains = null;
+  return getDomains();
 };
 
 // ── Generate a random password ───────────────────────────────────────────────
@@ -99,6 +151,7 @@ const markAsRead = async (token, messageId) => {
 
 module.exports = {
   getDomains,
+  refreshDomains,
   generatePassword,
   generateUsername,
   createAccount,

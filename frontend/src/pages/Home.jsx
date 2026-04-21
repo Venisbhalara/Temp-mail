@@ -45,13 +45,7 @@ export default function Home() {
   const { selectedEmail } = useApp();
 
   return (
-    <div
-      className="container"
-      style={{
-        maxWidth: selectedEmail ? 1040 : 900,
-        transition: "max-width 0.4s ease",
-      }}
-    >
+    <div className="container home-container">
       {/* ── Tab bar ── */}
       <div className="tab-bar" role="tablist">
         <button

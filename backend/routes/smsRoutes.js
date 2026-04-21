@@ -1,33 +1,38 @@
-/**
- * smsRoutes.js
- * ============
- * Routes for the Temporary Indian SMS feature.
- * Mounted at /api/sms in server.js
- */
+// smsRoutes.js
+// Routes for Temp SMS feature (Indian version)
 
 const express = require('express');
-const router  = express.Router();
-const {
-  getNumbers,
-  getInbox,
-  getNextNumber,
-  refreshInbox,
-  refreshNumbers,
-} = require('../controllers/smsController');
+const router = express.Router();
+const tempSmsService = require('../services/tempSmsService');
 
-// List available Indian numbers
-router.get('/numbers', getNumbers);
+// Get a new temp SMS number (Indian)
+router.get('/number', async (req, res) => {
+  try {
+    const numberData = await tempSmsService.requestTempNumber();
+    res.json(numberData);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get temp number', details: err.message });
+  }
+});
 
-// Get a fresh random number different from :current
-router.get('/next/:current', getNextNumber);
+// Get SMS inbox for a number
+router.get('/inbox/:number', async (req, res) => {
+  try {
+    const messages = await tempSmsService.fetchSmsInbox(req.params.number);
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch SMS inbox', details: err.message });
+  }
+});
 
-// Get SMS inbox for a specific number
-router.get('/inbox/:number', getInbox);
-
-// Force-refresh inbox (bust cache + re-fetch)
-router.post('/refresh/:number', refreshInbox);
-
-// Force-refresh the numbers list
-router.post('/refresh-numbers', refreshNumbers);
+// Release a temp number
+router.post('/release/:number', async (req, res) => {
+  try {
+    const result = await tempSmsService.releaseTempNumber(req.params.number);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to release number', details: err.message });
+  }
+});
 
 module.exports = router;

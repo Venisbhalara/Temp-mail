@@ -145,11 +145,17 @@ export const AppProvider = ({ children }) => {
   const generateInbox = async (customUsername = null) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      
       const res = await fetch(`${API}/generate-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customUsername }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+      
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to generate email");
@@ -162,7 +168,7 @@ export const AppProvider = ({ children }) => {
       toast(` New inbox created!`);
     } catch (err) {
       dispatch({ type: "SET_LOADING", payload: false });
-      toast(err.message, "error");
+      toast(err.message === "Failed to fetch" ? "Network timeout - please try again" : err.message, "error");
     }
   };
 

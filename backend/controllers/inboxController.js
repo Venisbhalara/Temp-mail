@@ -13,33 +13,59 @@ const inboxStore = new Map();
 
 const EXPIRY_MINUTES = parseInt(process.env.INBOX_EXPIRY_MINUTES || "60", 10);
 
+// Cache first domain on startup
+let cachedDomain = null;
+let lastDomainFetch = 0;
+const DOMAIN_FETCH_INTERVAL = 3600000; // Refresh domain every hour
+
+const ensureDomainCached = async () => {
+  const now = Date.now();
+  
+  // Return cached if still valid
+  if (cachedDomain && (now - lastDomainFetch) < DOMAIN_FETCH_INTERVAL) {
+    return cachedDomain;
+  }
+
+  try {
+    const domains = await getDomains();
+    if (domains && domains.length > 0) {
+      cachedDomain = domains[0].domain;
+      lastDomainFetch = now;
+      return cachedDomain;
+    }
+  } catch (err) {
+    console.error("Failed to fetch domains:", err.message);
+  }
+
+  // If cache failed and we have a cached domain, return it
+  if (cachedDomain) {
+    return cachedDomain;
+  }
+
+  throw new Error("No domains available");
+};
+
 // ── POST /api/generate-email ─────────────────────────────────────────────────
 const generateInbox = async (req, res) => {
   try {
     const { customUsername } = req.body;
 
-    // 1. Fetch available domains from Mail.tm
-    const domains = await getDomains();
-    if (!domains || domains.length === 0) {
-      return res
-        .status(503)
-        .json({ error: "No domains available from Mail.tm. Try again." });
-    }
+    // 1. Get cached domain (or fetch if needed)
+    const domain = await ensureDomainCached();
 
-    const domain = domains[0].domain;
     const username = customUsername
       ? customUsername.toLowerCase().replace(/[^a-z0-9._-]/g, "")
       : generateUsername();
     const address = `${username}@${domain}`;
     const password = generatePassword();
 
-    // 2. Create account on Mail.tm
-    const account = await createAccount(address, password);
+    // 2. Create account and get token in PARALLEL (not sequential)
+    const [account, token] = await Promise.all([
+      createAccount(address, password),
+      getToken(address, password),
+    ]);
 
-    // 3. Get JWT token
-    const token = await getToken(address, password);
-
-    // 4. Store in memory (for socket rooms & expiry)
+    // 3. Store in memory (for socket rooms & expiry)
     const inboxId = account.id;
     const expiresAt = new Date(Date.now() + EXPIRY_MINUTES * 60 * 1000);
 
@@ -145,4 +171,5 @@ module.exports = {
   getDomainList,
   deleteInbox,
   inboxStore,
+  ensureDomainCached,
 };

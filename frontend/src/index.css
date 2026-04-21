@@ -129,9 +129,22 @@
   margin: 0;
   padding: 0;
 }
+
 html {
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* Lenis smooth scroll recommended styles */
@@ -196,16 +209,56 @@ body {
 }
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 var(--sp-6);
+  padding: 0 clamp(0.75rem, 3vw, 2rem);
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
-/* ── Navbar ────────────────────────────────────────────────── */
+@media (min-width: 320px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+}
+
+@media (min-width: 360px) {
+  .container {
+    padding: 0 0.875rem;
+  }
+}
+
+@media (min-width: 480px) {
+  .container {
+    max-width: 100%;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 900px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1100px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* ── Z-Index layering hierarchy ────────────────────────────── */
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
   transition:
@@ -223,8 +276,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  gap: var(--sp-4);
+  min-height: clamp(3.25rem, 8vw, 4rem);
+  gap: clamp(0.25rem, 1.5vw, 1rem);
+  padding: 0 clamp(0.75rem, 3vw, 2rem);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 /* Logo */
@@ -241,14 +297,14 @@ body {
 }
 
 .navbar__logo-icon {
-  width: 38px;
-  height: 38px;
+  width: clamp(2rem, 5vw, 2.4rem);
+  height: clamp(2rem, 5vw, 2.4rem);
   background: var(--text-primary);
   border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: clamp(14px, 3vw, 18px);
   flex-shrink: 0;
   transition: background var(--dur-normal);
 }
@@ -263,13 +319,13 @@ body {
   line-height: 1.1;
 }
 .navbar__logo-name {
-  font-size: 17px;
+  font-size: clamp(1rem, 3vw, 1.1rem);
   font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--text-primary);
 }
 .navbar__logo-sub {
-  font-size: 9px;
+  font-size: clamp(7px, 1.5vw, 9px);
   font-weight: 400;
   color: var(--text-muted);
   letter-spacing: 0.02em;
@@ -284,15 +340,16 @@ body {
 }
 .navbar__nav-link {
   position: relative;
-  font-size: 14px;
+  font-size: clamp(12px, 1.5vw, 14px);
   font-weight: 500;
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 6px 14px;
+  padding: 0.4rem clamp(0.8rem, 2vw, 1rem);
   border-radius: var(--r-md);
   transition:
     color var(--dur-fast),
     background var(--dur-fast);
+  white-space: nowrap;
 }
 .navbar__nav-link:hover {
   color: var(--text-primary);
@@ -322,8 +379,8 @@ body {
 
 /* Hamburger (mobile) */
 .navbar__hamburger {
-  width: 36px;
-  height: 36px;
+  width: clamp(2rem, 5vw, 2.4rem);
+  height: clamp(2rem, 5vw, 2.4rem);
   border-radius: var(--r-md);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -332,7 +389,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: clamp(14px, 3vw, 18px);
   transition: all var(--dur-normal);
 }
 .navbar__hamburger:hover {
@@ -344,20 +401,31 @@ body {
 .tab-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  padding: var(--sp-6) 0 var(--sp-4);
+  justify-content: flex-start;
+  gap: clamp(0.35rem, 1.2vw, 1rem);
+  padding: clamp(0.75rem, 2vw, 1.5rem) 0 clamp(0.4rem, 1.5vw, 1rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  box-sizing: border-box;
+  scrollbar-width: none;
 }
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
 .tab-bar__tab {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
-  font-size: 14px;
+  justify-content: center;
+  gap: clamp(0.3rem, 0.8vw, 0.5rem);
+  font-size: clamp(12px, 1.4vw, 14px);
   font-weight: 500;
   color: var(--text-muted);
-  padding: 8px 20px;
+  padding: clamp(0.45rem, 0.8vw, 0.6rem) clamp(0.6rem, 2.5vw, 1.5rem);
   border-radius: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2.5px solid transparent;
   cursor: pointer;
   background: none;
   border-top: none;
@@ -366,6 +434,11 @@ body {
   transition:
     color var(--dur-fast),
     border-color var(--dur-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  min-height: 44px;
+  min-width: 44px;
 }
 .tab-bar__tab:hover {
   color: var(--text-secondary);
@@ -394,7 +467,7 @@ body {
 
 .hero {
   text-align: center;
-  padding: var(--sp-6) 0 var(--sp-10);
+  padding: clamp(1rem, 5vw, 1.5rem) 0 clamp(1.5rem, 8vw, 2.5rem);
   background: linear-gradient(180deg, var(--bg-hero) 0%, transparent 100%);
 }
 
@@ -420,7 +493,7 @@ body {
 .hero__sub {
   font-size: clamp(13px, 1.8vw, 15px);
   color: var(--text-secondary);
-  max-width: 440px;
+  max-width: clamp(280px, 90vw, 440px);
   margin: 0 auto;
   line-height: 1.75;
   margin-bottom: 0;
@@ -438,17 +511,19 @@ body {
 .email-box__field {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
+  gap: clamp(0.35rem, 1.5vw, 1rem);
   background: #1e2235;
   border: none;
   border-radius: var(--r-full);
-  padding: 8px 8px 8px 28px;
-  margin-bottom: var(--sp-4);
-  max-width: 520px;
+  padding: clamp(0.45rem, 1vw, 0.75rem) clamp(0.4rem, 1.2vw, 0.75rem) clamp(0.45rem, 1vw, 0.75rem) clamp(0.75rem, 2vw, 1.75rem);
+  margin-bottom: clamp(0.75rem, 2vw, 1.5rem);
+  max-width: calc(100% - 1.5rem);
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 4px 24px rgba(30, 34, 53, 0.18);
   transition: box-shadow var(--dur-normal);
+  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 [data-theme="dark"] .email-box__field {
   background: #1a1d2e;
@@ -460,33 +535,41 @@ body {
 
 .email-box__address {
   flex: 1;
+  min-width: clamp(80px, 35vw, 300px);
   font-family: var(--font-mono);
-  font-size: clamp(12px, 2vw, 14px);
+  font-size: clamp(11px, 1.6vw, 14px);
   font-weight: 500;
   color: #e2e8f0;
   word-break: break-all;
   letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Blue copy button inside pill */
 .email-box__copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
+  justify-content: center;
+  gap: 0.3rem;
   background: var(--accent);
   color: #fff;
-  font-size: 14px;
+  font-size: clamp(11px, 1.4vw, 14px);
   font-weight: 600;
   border: none;
   border-radius: var(--r-full);
-  padding: 10px 22px;
+  padding: clamp(0.55rem, 1vw, 0.75rem) clamp(0.75rem, 2.5vw, 1.5rem);
   cursor: pointer;
   flex-shrink: 0;
+  min-height: 44px;
+  min-width: 44px;
   transition:
     background var(--dur-fast),
     transform var(--dur-fast),
     box-shadow var(--dur-fast);
   box-shadow: 0 2px 12px rgba(59, 130, 246, 0.35);
+  white-space: nowrap;
+  touch-action: manipulation;
 }
 .email-box__copy-btn:hover:not(:disabled) {
   background: #2563eb;
@@ -501,7 +584,7 @@ body {
   cursor: not-allowed;
 }
 .email-box__copy-btn-icon {
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
 }
 
 /* Action buttons row */
@@ -509,8 +592,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-3);
+  gap: clamp(0.35rem, 1.5vw, 1rem);
   flex-wrap: wrap;
+  max-width: calc(100% - 1.5rem);
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  padding: 0 0.75rem;
 }
 
 .email-box__label {
@@ -536,24 +624,26 @@ body {
 /* custom username input row */
 .custom-username {
   display: flex;
-  gap: var(--sp-2);
+  gap: clamp(0.35rem, 1.5vw, 1rem);
   flex-wrap: wrap;
-  margin-top: var(--sp-4);
-  padding-top: var(--sp-4);
+  margin-top: clamp(0.75rem, 1.5vw, 1.5rem);
+  padding: clamp(0.75rem, 1.5vw, 1.5rem) clamp(0.75rem, 3vw, 2rem) 0;
+  padding-top: clamp(0.75rem, 1.5vw, 1.5rem);
   border-top: 1px solid var(--border);
-  max-width: 520px;
+  max-width: calc(100% - 1.5rem);
   margin-left: auto;
   margin-right: auto;
+  box-sizing: border-box;
 }
 .custom-username__input {
   flex: 1;
-  min-width: 180px;
+  min-width: clamp(140px, 40vw, 200px);
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 14px;
-  padding: var(--sp-2) var(--sp-3);
+  font-size: clamp(13px, 1.5vw, 14px);
+  padding: clamp(0.4rem, 1vw, 0.6rem) clamp(0.5rem, 1.5vw, 1rem);
   border-radius: var(--r-md);
   outline: none;
   transition:
@@ -571,8 +661,8 @@ body {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  font-size: 14px;
-  padding: var(--sp-2) var(--sp-3);
+  font-size: clamp(13px, 1.5vw, 14px);
+  padding: clamp(0.4rem, 1vw, 0.6rem) clamp(0.5rem, 1.5vw, 1rem);
   border-radius: var(--r-md);
   outline: none;
   cursor: pointer;
@@ -587,18 +677,23 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-2);
+  gap: clamp(0.3rem, 0.8vw, 0.5rem);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: clamp(13px, 1.5vw, 14px);
   font-weight: 500;
   border: none;
   cursor: pointer;
   outline: none;
   border-radius: var(--r-full);
-  padding: 9px 22px;
+  padding: clamp(0.55rem, 1vw, 0.75rem) clamp(0.75rem, 2.5vw, 1.5rem);
   transition: all var(--dur-normal) var(--ease);
   white-space: nowrap;
   user-select: none;
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .btn:disabled {
   opacity: 0.45;
@@ -660,12 +755,12 @@ body {
 .action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(0.4rem, 1vw, 0.5rem);
   background: var(--bg-surface);
   border: 1.5px solid var(--border-strong);
   border-radius: var(--r-full);
-  padding: 9px 20px;
-  font-size: 14px;
+  padding: clamp(0.6rem, 1.2vw, 0.75rem) clamp(1rem, 3vw, 1.5rem);
+  font-size: clamp(13px, 1.5vw, 14px);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -694,7 +789,7 @@ body {
   color: var(--danger);
 }
 .action-btn__icon {
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
 }
 
 /* ── Inbox Panel Card ───────────────────────────────────────── */
@@ -760,25 +855,29 @@ body {
 /* Column headers */
 .inbox-columns {
   display: grid;
-  grid-template-columns: 220px 1fr 100px;
-  gap: var(--sp-4);
-  padding: var(--sp-3) var(--sp-5);
+  grid-template-columns: minmax(120px, 1.2fr) 1fr minmax(60px, 0.8fr);
+  gap: clamp(0.35rem, 1.5vw, 1rem);
+  padding: clamp(0.5rem, 1.2vw, 1rem) clamp(0.75rem, 2vw, 1.5rem);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 .inbox-col-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  font-size: clamp(11px, 1.3vw, 13px);
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 .inbox-col-header svg {
   font-size: 14px;
@@ -803,15 +902,17 @@ body {
 /* ── Email Card ─────────────────────────────────────────────── */
 .email-card {
   display: grid;
-  grid-template-columns: 220px 1fr 100px;
-  gap: var(--sp-4);
+  grid-template-columns: minmax(100px, 1.1fr) 1fr minmax(50px, 0.6fr);
+  gap: clamp(0.35rem, 1.5vw, 1rem);
   align-items: center;
-  padding: var(--sp-5) var(--sp-5);
+  padding: clamp(0.6rem, 1.2vw, 1rem) clamp(0.75rem, 2vw, 1.5rem);
   cursor: pointer;
   border-bottom: 1px solid var(--border);
   transition: all var(--dur-normal) var(--ease);
   position: relative;
   background: var(--bg-surface);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .email-card > div {
   min-width: 0;
@@ -843,19 +944,19 @@ body {
 }
 
 .email-card__avatar {
-  width: 34px;
-  height: 34px;
+  width: clamp(2rem, 5vw, 2.2rem);
+  height: clamp(2rem, 5vw, 2.2rem);
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--accent-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: clamp(11px, 2vw, 13px);
   font-weight: 700;
   color: var(--accent);
   border: 1.5px solid rgba(59, 130, 246, 0.2);
-  margin-right: var(--sp-4);
+  margin-right: clamp(0.5rem, 1.5vw, 1rem);
 }
 
 .email-card__from-wrap {
@@ -865,39 +966,41 @@ body {
   min-width: 0;
 }
 .email-card__from {
-  font-size: 14px;
+  font-size: clamp(12px, 1.5vw, 14px);
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 140px;
+  max-width: 100%;
 }
 .email-card--unread .email-card__from {
   font-weight: 700;
 }
 .email-card__time {
-  font-size: 11px;
+  font-size: clamp(10px, 1.3vw, 11px);
   color: var(--text-muted);
-  margin-top: 1px;
+  margin-top: 0.1rem;
 }
 
 .email-card__subject {
-  font-size: 13px;
+  font-size: clamp(12px, 1.5vw, 13px);
   color: var(--text-secondary);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: var(--sp-4);
+  padding-right: clamp(0.35rem, 1vw, 1rem);
+  min-width: 0;
+  word-break: break-word;
 }
 .email-card__preview {
-  font-size: 12px;
+  font-size: clamp(11px, 1.3vw, 12px);
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-top: 2px;
+  margin-top: 0.15rem;
 }
 
 .email-card__view-btn {
@@ -965,8 +1068,8 @@ body {
   gap: var(--sp-3);
 }
 .empty-state__icon {
-  width: 90px;
-  height: 90px;
+  width: clamp(70px, 18vw, 90px);
+  height: clamp(70px, 18vw, 90px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -975,16 +1078,16 @@ body {
 .empty-state__illustration {
   /* speech-bubble style like the reference image */
   position: relative;
-  width: 80px;
-  height: 70px;
+  width: clamp(60px, 15vw, 80px);
+  height: clamp(50px, 12vw, 70px);
 }
 /* Two overlapping soft circles mimicking the speech bubble icon */
 .empty-state__bubble-primary {
   position: absolute;
   top: 0;
   left: 10px;
-  width: 58px;
-  height: 58px;
+  width: clamp(45px, 12vw, 58px);
+  height: clamp(45px, 12vw, 58px);
   border-radius: 50%;
   background: var(--bg-elevated);
   border: 2px solid var(--border-strong);
@@ -998,8 +1101,8 @@ body {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 44px;
-  height: 44px;
+  width: clamp(35px, 10vw, 44px);
+  height: clamp(35px, 10vw, 44px);
   border-radius: 50%;
   background: var(--bg-elevated);
   border: 2px solid var(--border-strong);
@@ -1012,7 +1115,7 @@ body {
 .empty-state__sub {
   font-size: 13px;
   color: var(--text-muted);
-  max-width: 260px;
+  max-width: clamp(200px, 90vw, 260px);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1042,8 +1145,11 @@ body {
   box-shadow: var(--shadow-md);
 }
 .email-viewer__header {
-  padding: var(--sp-5) var(--sp-6);
+  padding: clamp(0.8rem, 2vw, 1.25rem) clamp(0.75rem, 2vw, 1.5rem);
   border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 .email-viewer__meta-value {
   color: var(--text-secondary);
@@ -1076,12 +1182,14 @@ body {
   transform: translateX(-2px);
 }
 .email-viewer__subject {
-  font-size: clamp(20px, 3.5vw, 24px);
+  font-size: clamp(16px, 4vw, 24px);
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 0;
   line-height: 1.25;
   letter-spacing: -0.02em;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .email-viewer__meta-grid {
   display: flex;
@@ -1097,34 +1205,45 @@ body {
   flex-wrap: wrap;
 }
 .email-viewer__body {
-  padding: var(--sp-8) var(--sp-10);
+  padding: clamp(1rem, 2.5vw, 1.5rem) clamp(0.75rem, 2vw, 1.5rem);
   background: var(--bg-surface);
   line-height: 1.8;
+  overflow: hidden;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 .email-viewer__body-html {
   line-height: 1.8;
-  font-size: 16px;
+  font-size: clamp(13px, 1.8vw, 16px);
   color: var(--text-secondary);
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
 }
 .email-viewer__body-html img {
   max-width: 100%;
   height: auto;
+  display: block;
+  box-sizing: border-box;
 }
 .email-viewer__body-html a {
   color: var(--accent);
 }
 .email-viewer__body-text {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: clamp(12px, 1.5vw, 13px);
   color: var(--text-secondary);
   white-space: pre-wrap;
+  word-break: break-word;
   background: var(--bg-elevated);
   border-radius: var(--r-lg);
-  padding: var(--sp-5);
+  padding: clamp(1rem, 3vw, 1.25rem);
   line-height: 1.8;
   border: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* OTP highlight inside email body */
@@ -1243,28 +1362,33 @@ body {
 /* ── Toast / Notification ────────────────────────────────────── */
 .toast-stack {
   position: fixed;
-  bottom: var(--sp-6);
-  right: var(--sp-6);
+  bottom: clamp(0.5rem, 2vw, 1.5rem);
+  right: clamp(0.5rem, 2vw, 1.5rem);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
-  z-index: 999;
+  gap: clamp(0.4rem, 1vw, 0.5rem);
+  z-index: 2000;
   pointer-events: none;
+  max-width: calc(100% - 1rem);
+  box-sizing: border-box;
 }
 .toast {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
   background: var(--bg-surface);
   border: 1px solid var(--border-strong);
-  padding: var(--sp-3) var(--sp-4);
+  padding: clamp(0.6rem, 1.2vw, 0.8rem) clamp(0.8rem, 2vw, 1.2rem);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-lg);
-  font-size: 14px;
+  font-size: clamp(12px, 1.4vw, 14px);
   color: var(--text-primary);
   pointer-events: all;
-  max-width: 320px;
+  max-width: 90vw;
+  width: clamp(200px, 90vw, 320px);
   backdrop-filter: blur(10px);
+  word-break: break-word;
+  box-sizing: border-box;
 }
 .toast--success {
   border-color: rgba(16, 185, 129, 0.3);
@@ -1285,7 +1409,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
   transition: all var(--dur-normal);
 }
 .theme-toggle:hover {
@@ -1519,10 +1643,11 @@ body {
 }
 
 .legal-header h1 {
-  font-size: clamp(32px, 5vw, 48px);
+  font-size: clamp(1.8rem, 6vw, 3rem);
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: var(--sp-2);
+  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+  word-break: break-word;
 }
 
 .last-updated {
@@ -1532,10 +1657,12 @@ body {
 
 .legal-content {
   background: var(--bg-surface);
-  padding: var(--sp-10) var(--sp-12);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
   border-radius: var(--r-2xl);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
+  word-break: break-word;
+  overflow-x: hidden;
 }
 
 .legal-content section {
@@ -1543,16 +1670,17 @@ body {
 }
 
 .legal-content h2 {
-  font-size: 22px;
+  font-size: clamp(1.2rem, 3vw, 1.4rem);
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
 }
 
 .legal-content p {
   color: var(--text-secondary);
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
   line-height: 1.7;
+  font-size: clamp(13px, 1.5vw, 15px);
 }
 
 .legal-content ul {
@@ -1567,97 +1695,107 @@ body {
 
 /* ── Contact Page ─────────────────────────────────────────── */
 .contact-page {
-  padding: var(--sp-16) 0;
+  padding: clamp(2rem, 5vw, 4rem) 0;
   background: var(--bg-hero);
   min-height: 80vh;
+  overflow-x: hidden;
 }
 
 .contact-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--sp-12);
+  grid-template-columns: 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
   align-items: center;
+}
+
+@media (min-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: clamp(0.25rem, 0.8vw, 0.35rem) clamp(0.6rem, 2vw, 0.8rem);
   background: var(--accent-surface);
   color: var(--accent);
   border-radius: var(--r-full);
-  font-size: 13px;
+  font-size: clamp(12px, 1.3vw, 13px);
   font-weight: 600;
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
 }
 
 .contact-title {
-  font-size: clamp(32px, 5vw, 44px);
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
+  word-break: break-word;
 }
 
 .contact-description {
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
   color: var(--text-secondary);
   line-height: 1.6;
-  margin-bottom: var(--sp-8);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
 }
 
 .contact-details {
   display: grid;
-  gap: var(--sp-6);
+  gap: clamp(1rem, 2.5vw, 1.5rem);
 }
 
 .detail-item {
   display: flex;
-  gap: var(--sp-4);
+  gap: clamp(0.8rem, 2vw, 1rem);
   align-items: flex-start;
 }
 
 .detail-icon {
-  width: 44px;
-  height: 44px;
+  width: clamp(2.5rem, 6vw, 2.8rem);
+  height: clamp(2.5rem, 6vw, 2.8rem);
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: clamp(18px, 3vw, 20px);
   box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
 }
 
 .detail-text h3 {
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 2px;
+  margin-bottom: 0.15rem;
 }
 
 .detail-text p {
-  font-size: 14px;
+  font-size: clamp(13px, 1.5vw, 14px);
   color: var(--text-secondary);
 }
 
 .contact-form-card {
   background: var(--bg-surface);
-  padding: var(--sp-8);
+  padding: clamp(1.5rem, 4vw, 2rem);
   border-radius: var(--r-2xl);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
+  overflow-x: hidden;
 }
 
 .form-group {
-  margin-bottom: var(--sp-5);
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
 }
 
 .form-group label {
   display: block;
-  font-size: 14px;
+  font-size: clamp(13px, 1.5vw, 14px);
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: clamp(0.4rem, 1vw, 0.6rem);
 }
 
 .form-group input,
@@ -1666,11 +1804,13 @@ body {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  padding: 12px 16px;
+  padding: clamp(0.6rem, 1.5vw, 0.8rem) clamp(1rem, 2vw, 1.2rem);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 15px;
+  font-size: clamp(13px, 1.5vw, 15px);
   transition: all var(--dur-normal) var(--ease);
+  word-break: break-word;
+  overflow-x: auto;
 }
 
 .form-group input:focus,
@@ -1682,8 +1822,8 @@ body {
 
 .btn--full {
   width: 100%;
-  padding: 14px;
-  font-size: 16px;
+  padding: clamp(0.8rem, 2vw, 1rem);
+  font-size: clamp(13px, 1.5vw, 16px);
 }
 
 .contact-success {
@@ -1717,30 +1857,43 @@ body {
 
 .footer__grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr;
-  gap: var(--sp-12);
-  margin-bottom: var(--sp-16);
+  grid-template-columns: 1fr;
+  gap: clamp(2rem, 4vw, 3rem);
+  margin-bottom: clamp(2rem, 4vw, 4rem);
+}
+
+@media (min-width: 768px) {
+  .footer__grid {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer__grid {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: clamp(2rem, 4vw, 3rem);
+  }
 }
 
 .footer__logo-name {
-  font-size: 20px;
+  font-size: clamp(1.2rem, 3vw, 1.3rem);
   font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
   display: block;
 }
 
 .footer__tagline {
-  font-size: 14px;
+  font-size: clamp(12px, 1.5vw, 14px);
   color: var(--text-muted);
   line-height: 1.6;
 }
 
 .footer__title {
-  font-size: 15px;
+  font-size: clamp(13px, 1.5vw, 15px);
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: var(--sp-6);
+  margin-bottom: clamp(0.8rem, 2vw, 1.5rem);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -1756,7 +1909,7 @@ body {
 .footer__links a {
   text-decoration: none;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: clamp(12px, 1.3vw, 14px);
   transition: color var(--dur-fast);
 }
 
@@ -1771,7 +1924,7 @@ body {
 }
 
 .footer__copyright {
-  font-size: 13px;
+  font-size: clamp(11px, 1.3vw, 13px);
   color: var(--text-muted);
 }
 
@@ -1817,8 +1970,20 @@ body {
 /* Features Grid */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-6);
+  grid-template-columns: 1fr;
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+@media (min-width: 768px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .feature-item {
@@ -1836,8 +2001,8 @@ body {
 }
 
 .feature-item__icon {
-  font-size: 2.5rem;
-  margin-bottom: var(--sp-4);
+  font-size: clamp(2rem, 4vw, 2.5rem);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
 }
 
 .feature-item h3 {
@@ -1855,8 +2020,20 @@ body {
 /* How it Works */
 .steps-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-6);
+  grid-template-columns: 1fr;
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+@media (min-width: 768px) {
+  .steps-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .steps-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .step-card {
@@ -1869,13 +2046,13 @@ body {
 
 .step-num {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: clamp(10px, 1.3vw, 12px);
   font-weight: 700;
   color: var(--primary);
   background: var(--primary-light);
-  padding: 2px 8px;
+  padding: clamp(0.15rem, 0.5vw, 0.25rem) clamp(0.4rem, 1vw, 0.6rem);
   border-radius: var(--radius-full);
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
   display: inline-block;
 }
 
@@ -1891,12 +2068,12 @@ body {
 
 /* FAQ Section */
 .faq-section {
-  padding: var(--sp-12) 0;
+  padding: clamp(2rem, 5vw, 3rem) 0;
 }
 
 .faq-title {
   text-align: center;
-  margin-bottom: var(--sp-8);
+  margin-bottom: clamp(1.5rem, 4vw, 2rem);
 }
 
 .faq-list {
@@ -1918,18 +2095,19 @@ body {
 
 .faq-question {
   width: 100%;
-  padding: var(--sp-5) var(--sp-6);
+  padding: clamp(1rem, 2vw, 1.25rem) clamp(1rem, 3vw, 1.5rem);
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: clamp(14px, 1.5vw, 16px);
   font-weight: 600;
   color: var(--text-primary);
   text-align: left;
   cursor: pointer;
   transition: background 0.2s ease;
+  word-break: break-word;
 }
 
 .faq-question:hover {
@@ -1942,52 +2120,67 @@ body {
 }
 
 .faq-answer {
-  padding: 0 var(--sp-6) var(--sp-5);
-  font-size: 0.95rem;
+  padding: 0 clamp(1rem, 3vw, 1.5rem) clamp(0.8rem, 2vw, 1.25rem);
+  font-size: clamp(13px, 1.5vw, 15px);
   color: var(--text-secondary);
   line-height: 1.6;
+  word-break: break-word;
 }
 
 /* About Page */
 .about-page {
-  padding: var(--sp-16) 0;
+  padding: clamp(2rem, 5vw, 4rem) 0;
+  overflow-x: hidden;
 }
 
 .about-header {
   text-align: center;
-  margin-bottom: var(--sp-12);
+  margin-bottom: clamp(2rem, 5vw, 3rem);
 }
 
 .about-header h1 {
-  font-size: 3rem;
+  font-size: clamp(1.8rem, 6vw, 3rem);
   font-weight: 800;
-  margin: var(--sp-4) 0;
+  margin: clamp(0.5rem, 1.5vw, 1rem) 0;
   background: linear-gradient(to bottom, var(--text-primary), var(--text-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  word-break: break-word;
 }
 
 .about-section {
-  margin-bottom: var(--sp-10);
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
 }
 
 .about-section h2 {
-  font-size: 1.5rem;
-  margin-bottom: var(--sp-4);
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
 }
 
 .about-section p {
-  font-size: 1.1rem;
+  font-size: clamp(14px, 1.8vw, 18px);
   color: var(--text-secondary);
   line-height: 1.7;
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
 }
 
 .about-features-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--sp-4);
-  margin: var(--sp-12) 0;
+  grid-template-columns: 1fr;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  margin: clamp(1.5rem, 4vw, 3rem) 0;
+}
+
+@media (min-width: 768px) {
+  .about-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .about-features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .about-feature-card {
@@ -2025,13 +2218,14 @@ body {
 /* ── SMS Box ──────────────────────────────────────────────────── */
 .sms-box__number {
   font-family: var(--font-mono);
-  font-size: clamp(13px, 2.2vw, 16px);
+  font-size: clamp(12px, 2.5vw, 16px);
   font-weight: 600;
   letter-spacing: 0.04em;
   color: #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(0.5rem, 2vw, 0.75rem);
+  word-break: break-word;
 }
 
 .sms-box__flag {
@@ -2077,11 +2271,11 @@ body {
   font-size: 12.5px;
   color: var(--text-secondary);
   line-height: 1.55;
-  max-width: 520px;
+  max-width: clamp(320px, 90vw, 520px);
   margin: var(--sp-3) auto 0;
 }
 .sms-disclaimer__icon {
-  font-size: 16px;
+  font-size: clamp(14px, 1.8vw, 16px);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -2113,14 +2307,15 @@ body {
 /* ── SMS Card ─────────────────────────────────────────────────── */
 .sms-card {
   display: grid;
-  grid-template-columns: 180px 1fr 80px;
-  gap: var(--sp-4);
+  grid-template-columns: minmax(100px, 1fr) 1fr minmax(50px, 0.8fr);
+  gap: clamp(0.5rem, 2vw, 1rem);
   align-items: start;
-  padding: var(--sp-4) var(--sp-5);
+  padding: clamp(0.75rem, 1.5vw, 1.25rem) clamp(0.75rem, 2vw, 1.5rem);
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background var(--dur-fast);
   position: relative;
+  overflow: hidden;
 }
 .sms-card:last-child {
   border-bottom: none;
@@ -2142,20 +2337,20 @@ body {
   min-width: 0;
 }
 .sms-card__avatar {
-  width: 36px;
-  height: 36px;
+  width: clamp(2rem, 5vw, 2.3rem);
+  height: clamp(2rem, 5vw, 2.3rem);
   border-radius: 50%;
   background: linear-gradient(135deg, #3b82f6, #6366f1);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: clamp(11px, 1.5vw, 13px);
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
 }
 .sms-card__from {
-  font-size: 13.5px;
+  font-size: clamp(12px, 1.5vw, 13.5px);
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
@@ -2163,9 +2358,9 @@ body {
   text-overflow: ellipsis;
 }
 .sms-card__time {
-  font-size: 11.5px;
+  font-size: clamp(10px, 1.3vw, 11.5px);
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 0.15rem;
 }
 .sms-card__msg-col {
   min-width: 0;
@@ -2174,7 +2369,7 @@ body {
   gap: var(--sp-2);
 }
 .sms-card__preview {
-  font-size: 13.5px;
+  font-size: clamp(12px, 1.5vw, 13.5px);
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -2254,22 +2449,25 @@ body {
   font-weight: 700;
 }
 .sms-viewer__body {
-  padding: var(--sp-5) var(--sp-6);
+  padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .sms-viewer__message-bubble {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
-  padding: var(--sp-5) var(--sp-6);
-  max-width: 640px;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  max-width: 100%;
+  word-break: break-word;
 }
 .sms-viewer__body-text {
-  font-size: 15px;
+  font-size: clamp(14px, 2vw, 15px);
   line-height: 1.7;
   color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
-  margin-bottom: var(--sp-4);
+  margin-bottom: clamp(0.8rem, 2vw, 1rem);
 }
 .sms-viewer__copy-msg-btn {
   display: inline-flex;
@@ -2394,5 +2592,454 @@ body {
   opacity: 0.7;
   border-color: var(--accent-dim) !important;
   color: var(--accent) !important;
+}
+
+/* ================================================================
+   COMPREHENSIVE RESPONSIVE BREAKPOINTS
+   Mobile-first design: 320px, 480px, 768px, 1024px, 1280px
+   ================================================================ */
+
+/* ── Extra Small (320px - 479px) ────────────────────────────── */
+@media screen and (min-width: 320px) and (max-width: 479px) {
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .container {
+    padding: 0 clamp(0.75rem, 3vw, 1.5rem);
+    max-width: 100%;
+  }
+
+  .navbar__inner {
+    padding: 0 clamp(0.75rem, 3vw, 1rem);
+    min-height: 3.25rem;
+  }
+
+  .email-box__field {
+    max-width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .email-box__actions {
+    width: 95%;
+  }
+
+  .custom-username {
+    max-width: 95%;
+  }
+
+  .inbox-columns,
+  .email-card {
+    grid-template-columns: minmax(80px, 1fr) 1fr minmax(40px, 0.6fr);
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .features-grid,
+  .steps-container,
+  .about-features-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.5rem, 4vw, 1.75rem);
+    margin-bottom: 1rem;
+  }
+
+  .hero__title {
+    margin-bottom: clamp(0.75rem, 2vw, 1rem);
+  }
+
+  .email-viewer__body,
+  .sms-viewer__body {
+    padding: clamp(0.75rem, 2vw, 1rem);
+  }
+
+  .toast-stack {
+    bottom: clamp(0.5rem, 2vw, 1rem);
+    right: clamp(0.5rem, 2vw, 1rem);
+  }
+}
+
+/* ── Small (480px - 767px) ─────────────────────────────────── */
+@media screen and (min-width: 480px) and (max-width: 767px) {
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .container {
+    padding: 0 clamp(1rem, 3vw, 1.5rem);
+    max-width: 100%;
+  }
+
+  .email-box__field {
+    max-width: 90%;
+  }
+
+  .email-box__actions {
+    width: 90%;
+  }
+
+  .custom-username {
+    max-width: 90%;
+  }
+
+  .inbox-columns,
+  .email-card {
+    grid-template-columns: minmax(100px, 1.1fr) 1fr minmax(50px, 0.7fr);
+    gap: 0.75rem;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .contact-grid {
+    gap: 2rem;
+  }
+
+  .footer__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .features-grid,
+  .steps-container,
+  .about-features-grid {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+  }
+
+  .legal-content {
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+  }
+
+  .navbar__nav {
+    display: none;
+  }
+
+  .navbar__hamburger {
+    display: flex;
+  }
+}
+
+/* ── Tablet (768px - 1023px) ───────────────────────────────── */
+@media screen and (min-width: 768px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  .container {
+    padding: 0 clamp(1.25rem, 4vw, 2rem);
+    max-width: 900px;
+  }
+
+  .email-box__field {
+    max-width: 85%;
+  }
+
+  .email-box__actions {
+    width: 85%;
+  }
+
+  .custom-username {
+    max-width: 85%;
+  }
+
+  .inbox-columns,
+  .email-card {
+    grid-template-columns: minmax(120px, 1.2fr) 1fr minmax(60px, 0.8fr);
+    gap: 1rem;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .two-col--split {
+    grid-template-columns: 1fr 340px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 2.5rem;
+  }
+
+  .features-grid,
+  .steps-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+
+  .about-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .navbar__nav {
+    display: flex;
+  }
+
+  .navbar__hamburger {
+    display: none;
+  }
+
+  .email-viewer__body,
+  .sms-viewer__body {
+    padding: clamp(1.25rem, 3vw, 1.5rem);
+  }
+
+  .email-viewer__body-text {
+    padding: clamp(1rem, 2vw, 1.25rem);
+  }
+}
+
+/* ── Desktop (1024px - 1279px) ─────────────────────────────── */
+@media screen and (min-width: 1024px) {
+  .container {
+    padding: 0 clamp(1.5rem, 4vw, 2rem);
+    max-width: 1100px;
+  }
+
+  .email-box__field {
+    max-width: 520px;
+  }
+
+  .email-box__actions {
+    width: auto;
+  }
+
+  .custom-username {
+    max-width: 520px;
+  }
+
+  .inbox-columns,
+  .email-card {
+    grid-template-columns: 220px 1fr 100px;
+    gap: 1rem;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .two-col--split {
+    grid-template-columns: 1fr 340px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 3rem;
+  }
+
+  .features-grid,
+  .steps-container,
+  .about-features-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* ── Large Desktop (1280px+) ───────────────────────────────── */
+@media screen and (min-width: 1280px) {
+  .container {
+    padding: 0 2rem;
+    max-width: 1200px;
+  }
+
+  .email-box__field {
+    max-width: 520px;
+  }
+
+  .custom-username {
+    max-width: 520px;
+  }
+
+  .inbox-columns,
+  .email-card {
+    grid-template-columns: 220px 1fr 100px;
+    gap: 1.25rem;
+  }
+
+  .contact-grid {
+    gap: 3.5rem;
+  }
+
+  .footer__grid {
+    gap: 3.5rem;
+  }
+
+  .features-grid,
+  .steps-container,
+  .about-features-grid {
+    gap: 1.75rem;
+  }
+}
+
+/* ================================================================
+   ADDITIONAL RESPONSIVE UTILITIES & OVERFLOW FIXES
+   ================================================================ */
+
+/* Prevent horizontal scrolling across all breakpoints */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Image responsiveness across all screens */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Tables responsive */
+table {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Pre/code blocks responsive */
+pre,
+code {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* ── Mobile navigation responsive ──────────────────────────── */
+@media (max-width: 768px) {
+  .navbar__nav {
+    display: none;
+  }
+
+  .navbar__nav.active {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: clamp(0.75rem, 2vw, 1rem);
+    gap: clamp(0.5rem, 1vw, 0.75rem);
+  }
+
+  .navbar__hamburger {
+    display: flex;
+  }
+
+  .email-card__from {
+    max-width: 120px;
+  }
+
+  .email-card__subject {
+    display: none;
+  }
+
+  .inbox-columns {
+    grid-template-columns: minmax(100px, 1fr) minmax(50px, 0.6fr);
+    gap: 0.75rem;
+  }
+
+  .email-card {
+    grid-template-columns: 1fr minmax(40px, 0.4fr);
+    gap: 0.75rem;
+  }
+
+  .email-card__avatar {
+    display: none;
+  }
+
+  .inbox-col-header:nth-child(3),
+  .email-card > div:nth-child(3) {
+    text-align: center;
+  }
+}
+
+/* ── Tablet optimizations ──────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .section-title {
+    font-size: clamp(1.6rem, 4vw, 2rem);
+  }
+
+  .contact-grid {
+    gap: 2rem;
+  }
+
+  .features-grid,
+  .steps-container {
+    gap: 1rem;
+  }
+}
+
+/* ── Landscape mode optimizations ───────────────────────────── */
+@media (max-height: 600px) and (orientation: landscape) {
+  .hero {
+    padding: clamp(0.5rem, 2vw, 1rem) 0;
+  }
+
+  .navbar__inner {
+    min-height: 3rem;
+  }
+
+  .main-layout {
+    padding-bottom: clamp(1rem, 2vw, 1.5rem);
+  }
+}
+
+/* ── Print styles ──────────────────────────────────────────── */
+@media print {
+  .navbar,
+  .footer,
+  .toast-stack,
+  .email-box__actions,
+  .action-btn {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  img {
+    max-width: 100%;
+  }
 }
 
