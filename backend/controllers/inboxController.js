@@ -59,11 +59,25 @@ const generateInbox = async (req, res) => {
     const address = `${username}@${domain}`;
     const password = generatePassword();
 
-    // 2. Create account and get token in PARALLEL (not sequential)
-    const [account, token] = await Promise.all([
-      createAccount(address, password),
-      getToken(address, password),
-    ]);
+    // 2. Create account FIRST
+    const account = await createAccount(address, password);
+    
+    // 3. Wait a bit to ensure account is committed in Mail.tm database
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 4. Get token with retry logic (in case account isn't fully ready)
+    let token;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        token = await getToken(address, password);
+        break;
+      } catch (err) {
+        retries--;
+        if (retries === 0) throw err;
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
 
     // 3. Store in memory (for socket rooms & expiry)
     const inboxId = account.id;
@@ -97,7 +111,14 @@ const generateInbox = async (req, res) => {
         .status(409)
         .json({ error: "Username already taken. Try another." });
     }
+    // Rate limiting error
+    if (err?.response?.status === 429) {
+      return res
+        .status(429)
+        .json({ error: "Too many requests. Please wait a moment and try again." });
+    }
     res.status(500).json({ error: "Failed to generate email address" });
+  }
   }
 };
 

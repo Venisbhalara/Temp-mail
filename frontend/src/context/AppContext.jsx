@@ -142,7 +142,7 @@ export const AppProvider = ({ children }) => {
   };
 
   // ── Actions ─────────────────────────────────────────────────
-  const generateInbox = async (customUsername = null) => {
+  const generateInbox = async (customUsername = null, retryCount = 0) => {
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const controller = new AbortController();
@@ -158,6 +158,12 @@ export const AppProvider = ({ children }) => {
       
       if (!res.ok) {
         const err = await res.json();
+        // Rate limit - retry after delay
+        if (res.status === 429 && retryCount < 2) {
+          toast("Creating email... (waiting for rate limit)", "info");
+          await new Promise(resolve => setTimeout(resolve, 2000 + (retryCount * 1000)));
+          return generateInbox(customUsername, retryCount + 1);
+        }
         throw new Error(err.error || "Failed to generate email");
       }
       const inbox = await res.json();
@@ -165,10 +171,13 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: "SET_EMAILS", payload: [] });
       dispatch({ type: "SET_SELECTED", payload: null });
       connectSocket(inbox.inboxId);
-      toast(` New inbox created!`);
+      toast(`🎉 New inbox created!`);
     } catch (err) {
       dispatch({ type: "SET_LOADING", payload: false });
-      toast(err.message === "Failed to fetch" ? "Network timeout - please try again" : err.message, "error");
+      const errorMsg = err.message === "Failed to fetch" 
+        ? "Network timeout - please try again" 
+        : err.message;
+      toast(errorMsg, "error");
     }
   };
 
