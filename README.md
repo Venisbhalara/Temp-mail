@@ -7,10 +7,12 @@ A production-ready temporary email application with real-time inbox, OTP detecti
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - MongoDB running locally (`mongod`) OR a MongoDB Atlas URI
 
 ### 1. Backend Setup
+
 ```bash
 cd backend
 cp .env.example .env      # edit if needed
@@ -19,6 +21,7 @@ npm run dev               # runs on http://localhost:5000
 ```
 
 ### 2. Frontend Setup
+
 ```bash
 cd frontend
 npm install
@@ -75,37 +78,40 @@ tempmail/
 
 ## 🔌 API Reference
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/generate-email` | Create new inbox |
-| GET | `/api/inbox/:inboxId` | Get inbox details |
-| GET | `/api/domains` | List available domains |
-| DELETE | `/api/inbox/:inboxId` | Delete inbox + all emails |
-| GET | `/api/emails/:inboxId` | List emails (summary, no body) |
-| GET | `/api/email/:id` | Get full email |
-| DELETE | `/api/email/:id` | Delete single email |
-| POST | `/api/webhook/receive` | Mailgun webhook (production) |
-| POST | `/api/simulate-email/:inboxId` | Simulate email (demo) |
+| Method | Endpoint                       | Description                    |
+| ------ | ------------------------------ | ------------------------------ |
+| POST   | `/api/generate-email`          | Create new inbox               |
+| GET    | `/api/inbox/:inboxId`          | Get inbox details              |
+| GET    | `/api/domains`                 | List available domains         |
+| DELETE | `/api/inbox/:inboxId`          | Delete inbox + all emails      |
+| GET    | `/api/emails/:inboxId`         | List emails (summary, no body) |
+| GET    | `/api/email/:id`               | Get full email                 |
+| DELETE | `/api/email/:id`               | Delete single email            |
+| POST   | `/api/webhook/receive`         | Mailgun webhook (production)   |
+| POST   | `/api/simulate-email/:inboxId` | Simulate email (demo)          |
 
 ### WebSocket Events
-| Event | Direction | Payload |
-|-------|-----------|---------|
-| `join_inbox` | Client → Server | `inboxId` |
-| `new_email` | Server → Client | email summary object |
+
+| Event            | Direction       | Payload                      |
+| ---------------- | --------------- | ---------------------------- |
+| `join_inbox`     | Client → Server | `inboxId`                    |
+| `new_email`      | Server → Client | email summary object         |
 | `inbox_expiring` | Server → Client | `{ minutesLeft, expiresAt }` |
-| `inbox_deleted` | Server → Client | `{ inboxId }` |
+| `inbox_deleted`  | Server → Client | `{ inboxId }`                |
 
 ---
 
 ## 🌐 Production Deployment
 
 ### Email Receiving (Mailgun)
+
 1. Add your domain in Mailgun dashboard
 2. Set MX records to point to Mailgun SMTP
 3. Add a Route: match `.*@yourdomain.com` → forward to `https://yourbackend.com/api/webhook/receive`
 4. Set `MAILGUN_DOMAIN` in `.env`
 
 ### Environment Variables
+
 ```env
 PORT=5000
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/tempmail
@@ -116,6 +122,7 @@ MAX_EMAILS_PER_INBOX=50
 ```
 
 ### Deploy
+
 - **Frontend** → [Vercel](https://vercel.com) (drag & drop `frontend/` folder)
 - **Backend** → [Railway](https://railway.app) or [Render](https://render.com)
 - **Database** → [MongoDB Atlas](https://mongodb.com/atlas) (free tier)
@@ -123,6 +130,7 @@ MAX_EMAILS_PER_INBOX=50
 ---
 
 ## ✨ Features
+
 - ⚡ Instant disposable email generation
 - 🔄 Real-time inbox via Socket.io (zero refresh)
 - 🔐 Smart OTP detection & one-click copy

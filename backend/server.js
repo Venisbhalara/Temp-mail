@@ -36,8 +36,7 @@ app.set('io', io);
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use('/api', inboxRoutes);
 app.use('/api', emailRoutes);
-const smsRoutes = require('./routes/smsRoutes');
-app.use('/api/sms', smsRoutes);
+
 app.get('/health', (_req, res) =>
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 );
@@ -51,6 +50,9 @@ io.on('connection', (socket) => {
     console.log(`   └─ ${socket.id} joined inbox [${inboxId}]`);
   });
   socket.on('leave_inbox', (inboxId) => socket.leave(inboxId));
+
+
+
   socket.on('disconnect',  () => console.log(`🔴 Disconnected: ${socket.id}`));
 });
 
@@ -121,6 +123,8 @@ const PORT = process.env.PORT || 5000;
 
 setupCronJobs(io);
 startMailPoller(io); // Start the real-time mail listener
+
+
 
 // Initialize domain cache on server startup for faster email generation
 (async () => {
